@@ -492,28 +492,37 @@
   border: 1px solid red;
 } */
 
-/* общий стиль плитки */
-.mosaic-item {
+/* общий стиль плитки - применяется ко ВСЕМ элементам */
+.mosaic-item,
+.mosaic-gallery .mosaic-item,
+#galleryContainer .mosaic-item {
   position: relative;
   overflow: hidden;
   border-radius: 12px;
   box-shadow: 0 8px 20px rgba(0,0,0,0.05);
   transition: transform 0.3s, box-shadow 0.3s;
 }
-.mosaic-item:hover {
+.mosaic-item:hover,
+.mosaic-gallery .mosaic-item:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 28px rgba(0,0,0,0.1);
 }
 
-/* изображение растягивается на всю плитку */
-.mosaic-item img {
+/* изображение растягивается на всю плитку - применяется ко ВСЕМ элементам */
+.mosaic-item img,
+.mosaic-gallery img,
+.mosaic-gallery .mosaic-item img,
+#galleryContainer img,
+#galleryContainer .mosaic-item img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
   display: block;
   transition: transform 0.4s;
 }
-.mosaic-item:hover img {
+.mosaic-item:hover img,
+.mosaic-gallery .mosaic-item:hover img {
   transform: scale(1.05);
 }
 
@@ -533,6 +542,21 @@
   grid-column: span 2;
 }
 
+/* Классы для разных размеров - применяются ко ВСЕМ элементам */
+.mosaic-tall,
+.mosaic-gallery .mosaic-tall,
+#galleryContainer .mosaic-tall,
+.mosaic-item.mosaic-tall {
+  grid-row: span 2 !important;
+}
+
+.mosaic-wide,
+.mosaic-gallery .mosaic-wide,
+#galleryContainer .mosaic-wide,
+.mosaic-item.mosaic-wide {
+  grid-column: span 2 !important;
+}
+
 /* планшеты и небольшие десктопы: 3 колонки */
 @media (max-width: 1024px) {
   .mosaic-gallery {
@@ -545,7 +569,7 @@
   .mosaic-gallery {
     grid-template-columns: repeat(2, 1fr);
   }
-  /* Отменяем спаны, чтобы всё ложилось ровно по 2 в ряд */
+  /* Отменяем спаны для nth-child, но сохраняем для классов */
   .mosaic-item:nth-child(1),
   .mosaic-item:nth-child(3),
   .mosaic-item:nth-child(4),
@@ -554,6 +578,17 @@
     grid-row: auto;
     grid-column: auto;
   }
+  /* Но сохраняем стили для классов */
+  .mosaic-tall,
+  .mosaic-gallery .mosaic-tall,
+  #galleryContainer .mosaic-tall {
+    grid-row: span 2 !important;
+  }
+  .mosaic-wide,
+  .mosaic-gallery .mosaic-wide,
+  #galleryContainer .mosaic-wide {
+    grid-column: span 2 !important;
+  }
 }
 
 /* ========== Смартфоны (≤480px) ========== */
@@ -561,8 +596,14 @@
   .mosaic-gallery {
     grid-template-columns: repeat(2, 1fr);
   }
-  /* Убираем все span’ы, чтобы ровно одна картинка за одной */
-  .mosaic-item {
+  /* Убираем все span'ы, чтобы ровно одна картинка за одной */
+  .mosaic-item:not(.mosaic-tall):not(.mosaic-wide) {
+    grid-column: auto !important;
+    grid-row: auto !important;
+  }
+  /* На мобильных отключаем специальные размеры */
+  .mosaic-tall,
+  .mosaic-wide {
     grid-column: auto !important;
     grid-row: auto !important;
   }

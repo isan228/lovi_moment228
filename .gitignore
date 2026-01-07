@@ -1,35 +1,14 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-env/
-venv/
-ENV/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Django
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
-/media
-/staticfiles
+# Environment variables
+.env
+
+# Build output
+public/
 
 # IDE
 .vscode/
@@ -42,10 +21,15 @@ db.sqlite3-journal
 .DS_Store
 Thumbs.db
 
-# Generated static files (optional - можно закомментировать если хотите деплоить docs)
-# docs/
-
-# Large video files (exceed GitHub 100MB limit)
-static/images/*.MP4
-static/images/*.mp4
-
+# Python (если остались)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+*.egg-info/
+dist/
+build/

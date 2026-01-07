@@ -1,0 +1,92 @@
+const { sequelize } = require('../models');
+
+async function up() {
+  // Создаем таблицу пользователей
+  await sequelize.query(`
+    CREATE TABLE IF NOT EXISTS users (
+      id SERIAL PRIMARY KEY,
+      username VARCHAR(255) UNIQUE NOT NULL,
+      password VARCHAR(255) NOT NULL,
+      "isAdmin" BOOLEAN DEFAULT true,
+      "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+      "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
+  // Создаем таблицу типов туров
+  await sequelize.query(`
+    CREATE TABLE IF NOT EXISTS tour_types (
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      description TEXT,
+      "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+      "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
+  // Создаем таблицу туров
+  await sequelize.query(`
+    CREATE TABLE IF NOT EXISTS tours (
+      id SERIAL PRIMARY KEY,
+      title VARCHAR(255) NOT NULL,
+      description TEXT,
+      location VARCHAR(255),
+      country VARCHAR(255) DEFAULT 'Кыргызстан',
+      duration VARCHAR(255),
+      price DECIMAL(10, 2),
+      "tourTypeId" INTEGER REFERENCES tour_types(id) ON DELETE SET NULL,
+      "isActive" BOOLEAN DEFAULT true,
+      "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+      "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
+  // Создаем таблицу изображений туров
+  await sequelize.query(`
+    CREATE TABLE IF NOT EXISTS tour_images (
+      id SERIAL PRIMARY KEY,
+      "tourId" INTEGER NOT NULL REFERENCES tours(id) ON DELETE CASCADE,
+      "imagePath" VARCHAR(255) NOT NULL,
+      "isMain" BOOLEAN DEFAULT false,
+      "order" INTEGER DEFAULT 0,
+      "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+      "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
+  // Создаем таблицу изображений галереи
+  await sequelize.query(`
+    CREATE TABLE IF NOT EXISTS gallery_images (
+      id SERIAL PRIMARY KEY,
+      "imagePath" VARCHAR(255) NOT NULL,
+      title VARCHAR(255),
+      description TEXT,
+      country VARCHAR(255),
+      "order" INTEGER DEFAULT 0,
+      "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+      "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
+  console.log('✅ Таблицы созданы успешно');
+}
+
+async function down() {
+  await sequelize.query('DROP TABLE IF EXISTS gallery_images CASCADE;');
+  await sequelize.query('DROP TABLE IF EXISTS tour_images CASCADE;');
+  await sequelize.query('DROP TABLE IF EXISTS tours CASCADE;');
+  await sequelize.query('DROP TABLE IF EXISTS tour_types CASCADE;');
+  await sequelize.query('DROP TABLE IF EXISTS users CASCADE;');
+  console.log('✅ Таблицы удалены');
+}
+
+module.exports = { up, down };
+
+
+
+
+
+
+
+
+
