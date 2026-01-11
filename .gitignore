@@ -10,6 +10,12 @@ yarn-error.log*
 # Build output
 public/
 
+# Logs
+logs/
+*.log
+pm2-error.log
+pm2-out.log
+
 # IDE
 .vscode/
 .idea/
