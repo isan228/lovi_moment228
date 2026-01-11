@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { Tour, TourImage } = require('../../models');
 const { requireAuth } = require('../../middleware/auth');
+const { Op } = require('sequelize');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');

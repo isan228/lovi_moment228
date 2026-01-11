@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const { Blog } = require('../../models');
 const { requireAuth } = require('../../middleware/auth');
+const { Op } = require('sequelize');
 
 // Функция для создания slug из заголовка
 function createSlug(title) {
