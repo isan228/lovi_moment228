@@ -1,13 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const path = require('path');
 const { User } = require('../../models');
 const { requireGuest } = require('../../middleware/auth');
-
-// Страница логина
-router.get('/login', requireGuest, (req, res) => {
-  res.sendFile(path.join(__dirname, '../../public/admin/login.html'));
-});
 
 // Обработка логина
 router.post('/login', requireGuest, async (req, res) => {
