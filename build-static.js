@@ -251,7 +251,21 @@ function main() {
 
   // Очищаем папку public, но сохраняем важные файлы
   const backupPath = path.join(BASE_DIR, '.build_backup');
-  const filesToPreserve = ['admin']; // Папки и файлы, которые нужно сохранить
+  
+  // Папки и файлы, которые нужно сохранить (не генерируются из шаблонов)
+  const filesToPreserve = [
+    'admin',  // Админ-панель
+  ];
+  
+  // Папки в static/images, которые содержат загруженные файлы (не должны удаляться)
+  const staticImagesToPreserve = [
+    'tours',        // Фотографии туров
+    'gallery',      // Фотографии галереи
+    'reviews',      // Фотографии отзывов
+    'blogs',        // Фотографии блогов
+    'countries',    // Баннеры стран
+    'tour-types',   // Изображения видов туров
+  ];
   
   if (fs.existsSync(OUTPUT_DIR)) {
     // Сохраняем важные файлы перед очисткой
@@ -260,6 +274,7 @@ function main() {
     }
     fs.mkdirSync(backupPath, { recursive: true });
     
+    // Сохраняем папки верхнего уровня
     for (const item of filesToPreserve) {
       const itemPath = path.join(OUTPUT_DIR, item);
       if (fs.existsSync(itemPath)) {
@@ -269,12 +284,29 @@ function main() {
       }
     }
     
+    // Сохраняем загруженные изображения из static/images
+    const staticImagesPath = path.join(OUTPUT_DIR, 'static', 'images');
+    if (fs.existsSync(staticImagesPath)) {
+      const backupStaticImagesPath = path.join(backupPath, 'static_images');
+      fs.mkdirSync(backupStaticImagesPath, { recursive: true });
+      
+      for (const folder of staticImagesToPreserve) {
+        const folderPath = path.join(staticImagesPath, folder);
+        if (fs.existsSync(folderPath)) {
+          const backupFolderPath = path.join(backupStaticImagesPath, folder);
+          copyRecursive(folderPath, backupFolderPath);
+          console.log(`✅ static/images/${folder} сохранен перед очисткой`);
+        }
+      }
+    }
+    
     fs.rmSync(OUTPUT_DIR, { recursive: true, force: true });
   }
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });
   
   // Восстанавливаем сохраненные файлы после очистки
   if (fs.existsSync(backupPath)) {
+    // Восстанавливаем папки верхнего уровня
     for (const item of filesToPreserve) {
       const backupItemPath = path.join(backupPath, item);
       if (fs.existsSync(backupItemPath)) {
@@ -283,6 +315,23 @@ function main() {
         console.log(`✅ ${item} восстановлен`);
       }
     }
+    
+    // Восстанавливаем загруженные изображения
+    const backupStaticImagesPath = path.join(backupPath, 'static_images');
+    if (fs.existsSync(backupStaticImagesPath)) {
+      const staticImagesPath = path.join(OUTPUT_DIR, 'static', 'images');
+      fs.mkdirSync(staticImagesPath, { recursive: true });
+      
+      for (const folder of staticImagesToPreserve) {
+        const backupFolderPath = path.join(backupStaticImagesPath, folder);
+        if (fs.existsSync(backupFolderPath)) {
+          const folderPath = path.join(staticImagesPath, folder);
+          copyRecursive(backupFolderPath, folderPath);
+          console.log(`✅ static/images/${folder} восстановлен`);
+        }
+      }
+    }
+    
     // Удаляем временную папку
     fs.rmSync(backupPath, { recursive: true, force: true });
   }
