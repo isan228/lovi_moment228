@@ -249,99 +249,101 @@ function main() {
   const STATIC_DIR = path.join(BASE_DIR, 'static');
   const OUTPUT_DIR = path.join(BASE_DIR, 'public');
 
-  // Очищаем папку public, но сохраняем важные файлы
-  const backupPath = path.join(BASE_DIR, '.build_backup');
+  // НОВЫЙ ПОДХОД: Не удаляем всю папку public, а удаляем только файлы, сгенерированные из шаблонов
+  // Это сохраняет все загруженные файлы и админ-панель
   
-  // Папки и файлы, которые нужно сохранить (не генерируются из шаблонов)
-  const filesToPreserve = [
-    'admin',  // Админ-панель
-  ];
+  // Список папок/файлов, которые генерируются из шаблонов (их можно безопасно удалить)
+  const generatedPaths = Object.values(URL_MAPPING).map(path => {
+    // Преобразуем 'tour/about/1/index.html' в 'tour/about/1'
+    return path.replace('/index.html', '').replace('index.html', '');
+  }).filter(p => p); // Убираем пустые строки
   
-  // Папки в static/images, которые содержат загруженные файлы (не должны удаляться)
-  const staticImagesToPreserve = [
-    'tours',        // Фотографии туров
-    'gallery',      // Фотографии галереи
-    'reviews',      // Фотографии отзывов
-    'blogs',        // Фотографии блогов
-    'countries',    // Баннеры стран
-    'tour-types',   // Изображения видов туров
-  ];
+  // Уникальные папки верхнего уровня
+  const topLevelDirs = [...new Set(generatedPaths.map(p => p.split('/')[0]))];
+  
+  console.log('🗑️  Удаляю только сгенерированные файлы...');
   
   if (fs.existsSync(OUTPUT_DIR)) {
-    // Сохраняем важные файлы перед очисткой
-    if (fs.existsSync(backupPath)) {
-      fs.rmSync(backupPath, { recursive: true, force: true });
-    }
-    fs.mkdirSync(backupPath, { recursive: true });
-    
-    // Сохраняем папки верхнего уровня
-    for (const item of filesToPreserve) {
-      const itemPath = path.join(OUTPUT_DIR, item);
-      if (fs.existsSync(itemPath)) {
-        const backupItemPath = path.join(backupPath, item);
-        copyRecursive(itemPath, backupItemPath);
-        console.log(`✅ ${item} сохранен перед очисткой`);
-      }
-    }
-    
-    // Сохраняем загруженные изображения из static/images
-    const staticImagesPath = path.join(OUTPUT_DIR, 'static', 'images');
-    if (fs.existsSync(staticImagesPath)) {
-      const backupStaticImagesPath = path.join(backupPath, 'static_images');
-      fs.mkdirSync(backupStaticImagesPath, { recursive: true });
-      
-      for (const folder of staticImagesToPreserve) {
-        const folderPath = path.join(staticImagesPath, folder);
-        if (fs.existsSync(folderPath)) {
-          const backupFolderPath = path.join(backupStaticImagesPath, folder);
-          copyRecursive(folderPath, backupFolderPath);
-          console.log(`✅ static/images/${folder} сохранен перед очисткой`);
+    // Удаляем только папки, которые генерируются из шаблонов
+    for (const dir of topLevelDirs) {
+      const dirPath = path.join(OUTPUT_DIR, dir);
+      if (fs.existsSync(dirPath) && dir !== 'admin' && dir !== 'static') {
+        // Удаляем только если это не админ-панель и не статика
+        try {
+          fs.rmSync(dirPath, { recursive: true, force: true });
+          console.log(`🗑️  Удалена папка: ${dir}`);
+        } catch (err) {
+          console.log(`⚠️  Не удалось удалить ${dir}: ${err.message}`);
         }
       }
     }
     
-    fs.rmSync(OUTPUT_DIR, { recursive: true, force: true });
+    // Удаляем index.html в корне (генерируется из home.html)
+    const rootIndex = path.join(OUTPUT_DIR, 'index.html');
+    if (fs.existsSync(rootIndex)) {
+      fs.unlinkSync(rootIndex);
+      console.log('🗑️  Удален index.html');
+    }
+    
+    // Удаляем blog-detail.html если есть
+    const blogDetail = path.join(OUTPUT_DIR, 'blog-detail.html');
+    if (fs.existsSync(blogDetail)) {
+      fs.unlinkSync(blogDetail);
+      console.log('🗑️  Удален blog-detail.html');
+    }
+  } else {
+    fs.mkdirSync(OUTPUT_DIR, { recursive: true });
   }
-  fs.mkdirSync(OUTPUT_DIR, { recursive: true });
   
-  // Восстанавливаем сохраненные файлы после очистки
-  if (fs.existsSync(backupPath)) {
-    // Восстанавливаем папки верхнего уровня
-    for (const item of filesToPreserve) {
-      const backupItemPath = path.join(backupPath, item);
-      if (fs.existsSync(backupItemPath)) {
-        const itemPath = path.join(OUTPUT_DIR, item);
-        copyRecursive(backupItemPath, itemPath);
-        console.log(`✅ ${item} восстановлен`);
-      }
-    }
-    
-    // Восстанавливаем загруженные изображения
-    const backupStaticImagesPath = path.join(backupPath, 'static_images');
-    if (fs.existsSync(backupStaticImagesPath)) {
-      const staticImagesPath = path.join(OUTPUT_DIR, 'static', 'images');
-      fs.mkdirSync(staticImagesPath, { recursive: true });
-      
-      for (const folder of staticImagesToPreserve) {
-        const backupFolderPath = path.join(backupStaticImagesPath, folder);
-        if (fs.existsSync(backupFolderPath)) {
-          const folderPath = path.join(staticImagesPath, folder);
-          copyRecursive(backupFolderPath, folderPath);
-          console.log(`✅ static/images/${folder} восстановлен`);
-        }
-      }
-    }
-    
-    // Удаляем временную папку
-    fs.rmSync(backupPath, { recursive: true, force: true });
-  }
+  // ВАЖНО: НЕ удаляем папки admin и static - они содержат важные файлы!
+  console.log('✅ Сохранены: admin/, static/ и все загруженные файлы');
 
-  // Копируем статические файлы
+  // Копируем статические файлы (но не перезаписываем загруженные изображения)
   console.log('Копирую статические файлы...');
   const staticOutput = path.join(OUTPUT_DIR, 'static');
 
   if (fs.existsSync(STATIC_DIR)) {
-    copyRecursive(STATIC_DIR, staticOutput);
+    // Функция для копирования с сохранением существующих файлов в images/
+    function copyStaticPreservingUploads(src, dest) {
+      if (!fs.existsSync(dest)) {
+        fs.mkdirSync(dest, { recursive: true });
+      }
+      
+      const entries = fs.readdirSync(src, { withFileTypes: true });
+      
+      for (const entry of entries) {
+        const srcPath = path.join(src, entry.name);
+        const destPath = path.join(dest, entry.name);
+        
+        if (entry.isDirectory()) {
+          // Если это папка images, копируем только файлы, которых нет в destination
+          if (entry.name === 'images' && fs.existsSync(destPath)) {
+            // Копируем только отсутствующие файлы/папки
+            const destEntries = fs.readdirSync(destPath, { withFileTypes: true });
+            const destNames = new Set(destEntries.map(e => e.name));
+            
+            const srcEntries = fs.readdirSync(srcPath, { withFileTypes: true });
+            for (const srcEntry of srcEntries) {
+              if (!destNames.has(srcEntry.name)) {
+                // Копируем только если такой файл/папка отсутствует
+                copyRecursive(path.join(srcPath, srcEntry.name), path.join(destPath, srcEntry.name));
+              }
+            }
+          } else {
+            // Для других папок копируем как обычно
+            copyStaticPreservingUploads(srcPath, destPath);
+          }
+        } else {
+          // Копируем файл только если его нет
+          if (!fs.existsSync(destPath)) {
+            fs.copyFileSync(srcPath, destPath);
+          }
+        }
+      }
+    }
+    
+    copyStaticPreservingUploads(STATIC_DIR, staticOutput);
+    console.log('✅ Статические файлы скопированы (загруженные файлы сохранены)');
   }
 
   // Обрабатываем шаблоны
