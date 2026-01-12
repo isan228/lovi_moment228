@@ -249,30 +249,42 @@ function main() {
   const STATIC_DIR = path.join(BASE_DIR, 'static');
   const OUTPUT_DIR = path.join(BASE_DIR, 'public');
 
-  // Очищаем папку public, но сохраняем админ-панель
-  const adminBackupPath = path.join(BASE_DIR, '.admin_backup');
+  // Очищаем папку public, но сохраняем важные файлы
+  const backupPath = path.join(BASE_DIR, '.build_backup');
+  const filesToPreserve = ['admin']; // Папки и файлы, которые нужно сохранить
+  
   if (fs.existsSync(OUTPUT_DIR)) {
-    // Сохраняем админ-панель перед очисткой
-    const adminPath = path.join(OUTPUT_DIR, 'admin');
-    if (fs.existsSync(adminPath)) {
-      if (fs.existsSync(adminBackupPath)) {
-        fs.rmSync(adminBackupPath, { recursive: true, force: true });
-      }
-      fs.mkdirSync(adminBackupPath, { recursive: true });
-      copyRecursive(adminPath, adminBackupPath);
-      console.log('✅ Админ-панель сохранена перед очисткой');
+    // Сохраняем важные файлы перед очисткой
+    if (fs.existsSync(backupPath)) {
+      fs.rmSync(backupPath, { recursive: true, force: true });
     }
+    fs.mkdirSync(backupPath, { recursive: true });
+    
+    for (const item of filesToPreserve) {
+      const itemPath = path.join(OUTPUT_DIR, item);
+      if (fs.existsSync(itemPath)) {
+        const backupItemPath = path.join(backupPath, item);
+        copyRecursive(itemPath, backupItemPath);
+        console.log(`✅ ${item} сохранен перед очисткой`);
+      }
+    }
+    
     fs.rmSync(OUTPUT_DIR, { recursive: true, force: true });
   }
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });
   
-  // Восстанавливаем админ-панель после очистки
-  if (fs.existsSync(adminBackupPath)) {
-    const adminPath = path.join(OUTPUT_DIR, 'admin');
-    copyRecursive(adminBackupPath, adminPath);
-    console.log('✅ Админ-панель восстановлена');
+  // Восстанавливаем сохраненные файлы после очистки
+  if (fs.existsSync(backupPath)) {
+    for (const item of filesToPreserve) {
+      const backupItemPath = path.join(backupPath, item);
+      if (fs.existsSync(backupItemPath)) {
+        const itemPath = path.join(OUTPUT_DIR, item);
+        copyRecursive(backupItemPath, itemPath);
+        console.log(`✅ ${item} восстановлен`);
+      }
+    }
     // Удаляем временную папку
-    fs.rmSync(adminBackupPath, { recursive: true, force: true });
+    fs.rmSync(backupPath, { recursive: true, force: true });
   }
 
   // Копируем статические файлы
