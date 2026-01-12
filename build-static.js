@@ -198,6 +198,50 @@ function processTemplate(templatePath, outputPath, baseDir) {
   fs.writeFileSync(outputPath, content, 'utf-8');
 }
 
+// Функция для рекурсивного копирования
+function copyRecursive(src, dest) {
+  if (!fs.existsSync(dest)) {
+    fs.mkdirSync(dest, { recursive: true });
+  }
+  
+  const entries = fs.readdirSync(src, { withFileTypes: true });
+  
+  for (const entry of entries) {
+    const srcPath = path.join(src, entry.name);
+    // Нормализуем регистр: CSS -> css, JS -> js, но сохраняем оригинал тоже
+    const normalizedName = entry.name.toLowerCase();
+    const destPath = path.join(dest, normalizedName);
+    const originalDestPath = path.join(dest, entry.name);
+    
+    if (entry.isDirectory()) {
+      // Копируем с нормализованным именем
+      copyRecursive(srcPath, destPath);
+      // Если имя отличается, создаем также копию с оригинальным именем
+      if (entry.name !== normalizedName) {
+        copyRecursive(srcPath, originalDestPath);
+      }
+    } else {
+      // Копируем файл с нормализованным именем
+      fs.copyFileSync(srcPath, destPath);
+      // Если имя отличается, создаем также копию с оригинальным именем
+      if (entry.name !== normalizedName) {
+        fs.copyFileSync(srcPath, originalDestPath);
+      }
+      // Также создаем копию с разными расширениями для видео (mp4/MP4)
+      if (entry.name.toLowerCase().endsWith('.mp4')) {
+        const upperExt = entry.name.replace(/\.mp4$/i, '.MP4');
+        const lowerExt = entry.name.replace(/\.MP4$/i, '.mp4');
+        if (upperExt !== entry.name) {
+          fs.copyFileSync(srcPath, path.join(dest, upperExt));
+        }
+        if (lowerExt !== entry.name && lowerExt !== upperExt) {
+          fs.copyFileSync(srcPath, path.join(dest, lowerExt));
+        }
+      }
+    }
+  }
+}
+
 // Главная функция
 function main() {
   const BASE_DIR = __dirname;
@@ -205,58 +249,35 @@ function main() {
   const STATIC_DIR = path.join(BASE_DIR, 'static');
   const OUTPUT_DIR = path.join(BASE_DIR, 'public');
 
-  // Очищаем папку public
+  // Очищаем папку public, но сохраняем админ-панель
+  const adminBackupPath = path.join(BASE_DIR, '.admin_backup');
   if (fs.existsSync(OUTPUT_DIR)) {
+    // Сохраняем админ-панель перед очисткой
+    const adminPath = path.join(OUTPUT_DIR, 'admin');
+    if (fs.existsSync(adminPath)) {
+      if (fs.existsSync(adminBackupPath)) {
+        fs.rmSync(adminBackupPath, { recursive: true, force: true });
+      }
+      fs.mkdirSync(adminBackupPath, { recursive: true });
+      copyRecursive(adminPath, adminBackupPath);
+      console.log('✅ Админ-панель сохранена перед очисткой');
+    }
     fs.rmSync(OUTPUT_DIR, { recursive: true, force: true });
   }
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });
+  
+  // Восстанавливаем админ-панель после очистки
+  if (fs.existsSync(adminBackupPath)) {
+    const adminPath = path.join(OUTPUT_DIR, 'admin');
+    copyRecursive(adminBackupPath, adminPath);
+    console.log('✅ Админ-панель восстановлена');
+    // Удаляем временную папку
+    fs.rmSync(adminBackupPath, { recursive: true, force: true });
+  }
 
   // Копируем статические файлы
   console.log('Копирую статические файлы...');
   const staticOutput = path.join(OUTPUT_DIR, 'static');
-  
-  function copyRecursive(src, dest) {
-    if (!fs.existsSync(dest)) {
-      fs.mkdirSync(dest, { recursive: true });
-    }
-    
-    const entries = fs.readdirSync(src, { withFileTypes: true });
-    
-    for (const entry of entries) {
-      const srcPath = path.join(src, entry.name);
-      // Нормализуем регистр: CSS -> css, JS -> js, но сохраняем оригинал тоже
-      const normalizedName = entry.name.toLowerCase();
-      const destPath = path.join(dest, normalizedName);
-      const originalDestPath = path.join(dest, entry.name);
-      
-      if (entry.isDirectory()) {
-        // Копируем с нормализованным именем
-        copyRecursive(srcPath, destPath);
-        // Если имя отличается, создаем также копию с оригинальным именем
-        if (entry.name !== normalizedName) {
-          copyRecursive(srcPath, originalDestPath);
-        }
-      } else {
-        // Копируем файл с нормализованным именем
-        fs.copyFileSync(srcPath, destPath);
-        // Если имя отличается, создаем также копию с оригинальным именем
-        if (entry.name !== normalizedName) {
-          fs.copyFileSync(srcPath, originalDestPath);
-        }
-        // Также создаем копию с разными расширениями для видео (mp4/MP4)
-        if (entry.name.toLowerCase().endsWith('.mp4')) {
-          const upperExt = entry.name.replace(/\.mp4$/i, '.MP4');
-          const lowerExt = entry.name.replace(/\.MP4$/i, '.mp4');
-          if (upperExt !== entry.name) {
-            fs.copyFileSync(srcPath, path.join(dest, upperExt));
-          }
-          if (lowerExt !== entry.name && lowerExt !== upperExt) {
-            fs.copyFileSync(srcPath, path.join(dest, lowerExt));
-          }
-        }
-      }
-    }
-  }
 
   if (fs.existsSync(STATIC_DIR)) {
     copyRecursive(STATIC_DIR, staticOutput);

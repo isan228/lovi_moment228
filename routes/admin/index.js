@@ -5,7 +5,14 @@ const path = require('path');
 
 // Страница логина (до подключения других роутов)
 router.get('/login', requireGuest, (req, res) => {
-  res.sendFile(path.join(__dirname, '../../public/admin/login.html'));
+  const loginPath = path.join(__dirname, '../../public/admin/login.html');
+  console.log('Admin login path:', loginPath);
+  const fs = require('fs');
+  if (!fs.existsSync(loginPath)) {
+    console.error('Login file not found at:', loginPath);
+    return res.status(404).send('Login page not found');
+  }
+  res.sendFile(loginPath);
 });
 
 // Главная страница админ-панели

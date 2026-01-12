@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ-панель - Lovi Moment</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: white;
+            color: #667eea;
+        }
+        
+        .btn-primary:hover {
+            background: #f0f0f0;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .tab:hover {
+            color: #667eea;
+        }
+        
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .card-header h2 {
+            font-size: 20px;
+            color: #333;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .image-preview {
+            max-width: 200px;
+            max-height: 200px;
+            margin-top: 10px;
+            border-radius: 6px;
+        }
+        
+        .image-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .image-item {
+            position: relative;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .image-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+        
+        .image-item .delete-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(220, 53, 69, 0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <h1>🔐 Админ-панель Lovi Moment</h1>
+            <div class="header-actions">
+                <span id="username">Загрузка...</span>
+                <button class="btn btn-danger" onclick="logout()">Выйти</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('countries')">Страны</button>
+            <button class="tab" onclick="switchTab('tour-types')">Виды туров</button>
+            <button class="tab" onclick="switchTab('tours')">Туры</button>
+            <button class="tab" onclick="switchTab('gallery')">Галерея</button>
+            <button class="tab" onclick="switchTab('reviews')">Отзывы</button>
+            <button class="tab" onclick="switchTab('blogs')">Блоги</button>
+            <button class="tab" onclick="switchTab('settings')">Настройки</button>
+        </div>
+        
+        <!-- Страны -->
+        <div id="countries" class="tab-content active">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Страны</h2>
+                    <button class="btn btn-success" onclick="showCountryForm()">+ Добавить страну</button>
+                </div>
+                <div id="countriesList" class="loading">Загрузка...</div>
+            </div>
+        </div>
+        
+        <!-- Виды туров -->
+        <div id="tour-types" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Виды туров</h2>
+                    <button class="btn btn-success" onclick="showTourTypeForm()">+ Добавить вид</button>
+                </div>
+                <div id="tourTypesList" class="loading">Загрузка...</div>
+            </div>
+        </div>
+        
+        <!-- Туры -->
+        <div id="tours" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Туры</h2>
+                    <button class="btn btn-success" onclick="showTourForm()">+ Добавить тур</button>
+                </div>
+                <div id="toursList" class="loading">Загрузка...</div>
+            </div>
+        </div>
+        
+        <!-- Галерея -->
+        <div id="gallery" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Галерея</h2>
+                    <button class="btn btn-success" onclick="showGalleryForm()">+ Добавить фото</button>
+                </div>
+                <div id="galleryList" class="loading">Загрузка...</div>
+            </div>
+        </div>
+        
+        <!-- Отзывы -->
+        <div id="reviews" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Отзывы</h2>
+                    <button class="btn btn-success" onclick="showReviewForm()">+ Добавить отзыв</button>
+                </div>
+                <div id="reviewsList" class="loading">Загрузка...</div>
+            </div>
+        </div>
+        
+        <!-- Блоги -->
+        <div id="blogs" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Блоги</h2>
+                    <button class="btn btn-success" onclick="showBlogForm()">+ Добавить блог</button>
+                </div>
+                <div id="blogsList" class="loading">Загрузка...</div>
+            </div>
+        </div>
+        
+        <!-- Настройки -->
+        <div id="settings" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Настройки</h2>
+                </div>
+                <div id="settingsContent" class="loading">Загрузка...</div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/admin/admin.js"></script>
+</body>
+</html>

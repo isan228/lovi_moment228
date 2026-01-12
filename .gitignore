@@ -9,6 +9,9 @@ yarn-error.log*
 
 # Build output
 public/
+# Но сохраняем админ-панель
+!public/admin/
+!public/admin/**
 
 # Logs
 logs/

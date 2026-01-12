@@ -12,7 +12,8 @@
     "sync-db:alter": "node scripts/sync-db.js alter",
     "sync-db:force": "node scripts/sync-db.js force",
     "migrate": "node migrations/001_create_tables.js",
-    "init-admin": "node scripts/init-admin.js"
+    "init-admin": "node scripts/init-admin.js",
+    "restore-admin": "node scripts/restore-admin.js"
   },
   "keywords": [
     "travel",

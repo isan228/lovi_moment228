@@ -161,7 +161,15 @@ app.post('/submit-application', async (req, res) => {
 });
 
 // Раздача статических файлов из public
-app.use(express.static(path.join(__dirname, 'public')));
+// Исключаем /admin и /api из статики - они обрабатываются роутерами выше
+const staticMiddleware = express.static(path.join(__dirname, 'public'));
+app.use((req, res, next) => {
+  if (req.path.startsWith('/admin') || req.path.startsWith('/api')) {
+    return next(); // Пропускаем статику для админки и API
+  }
+  // Для остальных путей используем статику
+  staticMiddleware(req, res, next);
+});
 
 // Обработка всех остальных маршрутов (для статических HTML страниц)
 // Express автоматически будет искать index.html в соответствующих папках
