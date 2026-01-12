@@ -1,15 +1,44 @@
+// Вспомогательная функция для fetch с credentials
+function apiFetch(url, options = {}) {
+    return fetch(url, {
+        ...options,
+        credentials: 'include', // Всегда отправляем cookies
+        headers: {
+            'Content-Type': 'application/json',
+            ...options.headers
+        }
+    });
+}
+
 // Проверка авторизации
 async function checkAuth() {
     try {
-        const response = await fetch('/api/admin/auth/check');
-        const data = await response.json();
-        if (!data.authenticated) {
+        const response = await apiFetch('/api/admin/auth/check', {
+            method: 'GET'
+        });
+        
+        if (!response.ok) {
+            console.error('Ошибка проверки авторизации:', response.status);
             window.location.href = '/admin/login';
             return false;
         }
-        document.getElementById('username').textContent = data.username;
+        
+        const data = await response.json();
+        console.log('Проверка авторизации:', data);
+        
+        if (!data.authenticated) {
+            console.log('Пользователь не авторизован');
+            window.location.href = '/admin/login';
+            return false;
+        }
+        
+        const usernameEl = document.getElementById('username');
+        if (usernameEl) {
+            usernameEl.textContent = data.username || 'Администратор';
+        }
         return true;
     } catch (error) {
+        console.error('Ошибка при проверке авторизации:', error);
         window.location.href = '/admin/login';
         return false;
     }
@@ -18,10 +47,13 @@ async function checkAuth() {
 // Выход
 async function logout() {
     try {
-        await fetch('/api/admin/auth/logout', { method: 'POST' });
+        await apiFetch('/api/admin/auth/logout', { 
+            method: 'POST'
+        });
         window.location.href = '/admin/login';
     } catch (error) {
         console.error('Ошибка при выходе:', error);
+        window.location.href = '/admin/login';
     }
 }
 
@@ -54,7 +86,7 @@ function switchTab(tabName) {
 // ========== СТРАНЫ ==========
 async function loadCountries() {
     try {
-        const response = await fetch('/api/admin/countries');
+        const response = await apiFetch('/api/admin/countries');
         const countries = await response.json();
         
         const list = document.getElementById('countriesList');
@@ -176,7 +208,7 @@ function showCountryForm(countryId = null) {
                     body: formData
                 });
             } else {
-                await fetch('/api/admin/countries', {
+                await apiFetch('/api/admin/countries', {
                     method: 'POST',
                     body: formData
                 });
@@ -203,7 +235,7 @@ function editCountry(id) {
 }
 
 async function loadCountriesForSelect() {
-    const response = await fetch('/api/admin/countries');
+    const response = await apiFetch('/api/admin/countries');
     const countries = await response.json();
     return countries.filter(c => c.isActive).map(c => `<option value="${c.id}">${c.name}</option>`).join('');
 }
@@ -211,7 +243,7 @@ async function loadCountriesForSelect() {
 // ========== ВИДЫ ТУРОВ ==========
 async function loadTourTypes() {
     try {
-        const response = await fetch('/api/admin/tour-types');
+        const response = await apiFetch('/api/admin/tour-types');
         const tourTypes = await response.json();
         
         const list = document.getElementById('tourTypesList');
@@ -397,7 +429,7 @@ function showTourTypeForm(tourTypeId = null) {
                     body: formData
                 });
             } else {
-                await fetch('/api/admin/tour-types', {
+                await apiFetch('/api/admin/tour-types', {
                     method: 'POST',
                     body: formData
                 });
@@ -426,7 +458,7 @@ function editTourType(id) {
 // ========== ТУРЫ ==========
 async function loadTours() {
     try {
-        const response = await fetch('/api/admin/tours');
+        const response = await apiFetch('/api/admin/tours');
         const tours = await response.json();
         
         const list = document.getElementById('toursList');
@@ -470,7 +502,7 @@ async function loadTours() {
 }
 
 async function loadTourTypesForSelect() {
-    const response = await fetch('/api/admin/tour-types');
+    const response = await apiFetch('/api/admin/tour-types');
     const tourTypes = await response.json();
     return tourTypes.map(tt => `<option value="${tt.id}">${tt.name}</option>`).join('');
 }
@@ -645,7 +677,7 @@ function showTourForm(tourId = null) {
                         body: JSON.stringify(data)
                     });
                 } else {
-                    await fetch('/api/admin/tours', {
+                    await apiFetch('/api/admin/tours', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(data)
@@ -756,7 +788,7 @@ async function deleteTourImage(id) {
 // ========== ГАЛЕРЕЯ ==========
 async function loadGallery() {
     try {
-        const response = await fetch('/api/admin/gallery');
+        const response = await apiFetch('/api/admin/gallery');
         const images = await response.json();
         
         const list = document.getElementById('galleryList');
@@ -815,7 +847,7 @@ function showGalleryForm() {
         }
         
         try {
-            const response = await fetch('/api/admin/gallery', {
+            const response = await apiFetch('/api/admin/gallery', {
                 method: 'POST',
                 body: formData
             });
@@ -844,7 +876,7 @@ async function deleteGalleryImage(id) {
 // ========== ОТЗЫВЫ ==========
 async function loadReviews() {
     try {
-        const response = await fetch('/api/admin/reviews');
+        const response = await apiFetch('/api/admin/reviews');
         const reviews = await response.json();
         
         const list = document.getElementById('reviewsList');
@@ -992,7 +1024,7 @@ function showReviewForm(reviewId = null) {
                     body: formData
                 });
             } else {
-                await fetch('/api/admin/reviews', {
+                await apiFetch('/api/admin/reviews', {
                     method: 'POST',
                     body: formData
                 });
@@ -1023,8 +1055,8 @@ async function loadSettings() {
     try {
         // Загружаем видео и статистику параллельно
         const [videoResponse, statsResponse] = await Promise.all([
-            fetch('/api/admin/settings/main_video'),
-            fetch('/api/admin/settings/stats/all')
+            apiFetch('/api/admin/settings/main_video'),
+            apiFetch('/api/admin/settings/stats/all')
         ]);
         
         const setting = await videoResponse.json();
@@ -1125,7 +1157,7 @@ async function loadSettings() {
                 formData.append('video', videoFile);
                 
                 try {
-                    const response = await fetch('/api/admin/settings/main_video', {
+                    const response = await apiFetch('/api/admin/settings/main_video', {
                         method: 'PUT',
                         body: formData
                     });
@@ -1157,7 +1189,7 @@ async function loadSettings() {
                 };
                 
                 try {
-                    const response = await fetch('/api/admin/settings/stats/update', {
+                    const response = await apiFetch('/api/admin/settings/stats/update', {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json'
@@ -1187,7 +1219,7 @@ async function loadSettings() {
 // ========== БЛОГИ ==========
 async function loadBlogs() {
     try {
-        const response = await fetch('/api/admin/blogs');
+        const response = await apiFetch('/api/admin/blogs');
         const blogs = await response.json();
         
         const list = document.getElementById('blogsList');

@@ -162,6 +162,7 @@
             try {
                 const response = await fetch('/api/admin/auth/login', {
                     method: 'POST',
+                    credentials: 'include', // Важно для сохранения cookies
                     headers: {
                         'Content-Type': 'application/json'
                     },
@@ -190,13 +191,16 @@
         // Проверка авторизации при загрузке страницы
         window.addEventListener('load', async () => {
             try {
-                const response = await fetch('/api/admin/auth/check');
+                const response = await fetch('/api/admin/auth/check', {
+                    credentials: 'include' // Важно для отправки cookies
+                });
                 const data = await response.json();
                 if (data.authenticated) {
                     window.location.href = '/admin';
                 }
             } catch (error) {
                 // Игнорируем ошибки проверки
+                console.log('Проверка авторизации на странице логина:', error);
             }
         });
     </script>
