@@ -163,8 +163,16 @@ app.post('/submit-application', async (req, res) => {
 
 // Раздача статических файлов из public
 // Исключаем /admin и /api из статики - они обрабатываются роутерами выше
+// НО разрешаем статические файлы из /admin/ (admin.js и т.д.)
 const staticMiddleware = express.static(path.join(__dirname, 'public'));
 app.use((req, res, next) => {
+  // Разрешаем статические файлы из /admin/ (admin.js, и т.д.)
+  if (req.path.startsWith('/admin/') && !req.path.startsWith('/admin/api') && 
+      (req.path.endsWith('.js') || req.path.endsWith('.css') || req.path.endsWith('.png') || 
+       req.path.endsWith('.jpg') || req.path.endsWith('.gif') || req.path.endsWith('.ico'))) {
+    return staticMiddleware(req, res, next);
+  }
+  
   if (req.path.startsWith('/admin') || req.path.startsWith('/api')) {
     return next(); // Пропускаем статику для админки и API
   }
