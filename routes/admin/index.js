@@ -20,25 +20,7 @@ router.get('/', requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, '../../public/admin/index.html'));
 });
 
-// Раздача статических файлов админ-панели (admin.js и другие)
-router.get('/:filename', (req, res, next) => {
-  const filename = req.params.filename;
-  // Разрешаем только определенные файлы
-  const allowedFiles = ['admin.js'];
-  
-  if (allowedFiles.includes(filename)) {
-    const filePath = path.join(__dirname, '../../public/admin', filename);
-    const fs = require('fs');
-    if (fs.existsSync(filePath)) {
-      return res.sendFile(filePath);
-    }
-  }
-  
-  // Если это не статический файл, передаем дальше
-  next();
-});
-
-// Подключение роутов
+// Подключение роутов (важно: до обработки статических файлов)
 router.use('/auth', require('./auth'));
 router.use('/countries', require('./countries'));
 router.use('/tour-types', require('./tourTypes'));
