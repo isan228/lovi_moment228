@@ -31,5 +31,24 @@ router.use('/settings', require('./settings'));
 router.use('/reviews', require('./reviews'));
 router.use('/blogs', require('./blogs'));
 
+// Раздача статических файлов админ-панели (admin.js и другие)
+// Должно быть ПОСЛЕ всех API роутов, чтобы не перехватывать их
+router.get('/:filename', (req, res) => {
+  const filename = req.params.filename;
+  // Разрешаем только определенные статические файлы
+  const allowedFiles = ['admin.js'];
+  
+  if (allowedFiles.includes(filename)) {
+    const filePath = path.join(__dirname, '../../public/admin', filename);
+    const fs = require('fs');
+    if (fs.existsSync(filePath)) {
+      return res.sendFile(filePath);
+    }
+  }
+  
+  // Если это не статический файл, возвращаем 404
+  res.status(404).send('Not found');
+});
+
 module.exports = router;
 
