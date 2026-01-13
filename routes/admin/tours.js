@@ -333,6 +333,16 @@ router.put('/:id', requireAuth, uploadHeaderImage.single('headerImage'), async (
       tour.headerImage = `/static/images/tours/${req.file.filename}`;
     }
 
+    if (price !== undefined) {
+      // Обрабатываем price: если пустая строка или не число, то null
+      if (price === null || price === '') {
+        tour.price = null;
+      } else {
+        const parsedPrice = parseFloat(price);
+        tour.price = !isNaN(parsedPrice) ? parsedPrice : null;
+      }
+    }
+    
     tour.title = title !== undefined ? title : tour.title;
     tour.description = description !== undefined ? description : tour.description;
     tour.location = location !== undefined ? location : tour.location;
