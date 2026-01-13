@@ -777,14 +777,20 @@ async function loadTour() {
 
 // Обновление header
 function updateTourHeader(tour) {
+  console.log('Обновление header, tour:', tour);
   const header = document.getElementById('tourHeader');
   const title = document.getElementById('tourTitle');
   const subtitle = document.getElementById('tourSubtitle');
   const countryBreadcrumb = document.getElementById('countryBreadcrumb');
   const tourBreadcrumb = document.getElementById('tourBreadcrumb');
   
+  // Устанавливаем главное фото только если есть headerImage
   if (tour.headerImage) {
+    console.log('Устанавливаем headerImage:', tour.headerImage);
     header.style.backgroundImage = `url('${tour.headerImage}')`;
+  } else {
+    console.log('headerImage не найден, используем дефолтное изображение');
+    header.style.backgroundImage = `url('/static/images/location.png')`;
   }
   
   if (title) title.textContent = tour.title || 'Тур';
@@ -936,19 +942,34 @@ function updateTourDescription(tour) {
 
 // Обновление галереи
 function updateTourGallery(tour) {
+  console.log('Обновление галереи, tour.images:', tour.images);
   const track1 = document.getElementById('galleryTrack1');
   const track2 = document.getElementById('galleryTrack2');
   
-  if (!track1 || !track2) return;
+  if (!track1 || !track2) {
+    console.error('Треки галереи не найдены');
+    return;
+  }
   
-  const images = tour.images || [];
+  // Используем tour.images (массив TourImage), исключая headerImage
+  let images = [];
+  if (tour.images && Array.isArray(tour.images)) {
+    images = tour.images.map(img => img.imagePath || img);
+  }
+  
+  console.log('Обработанные изображения для галереи:', images);
   
   if (images.length === 0) {
+    console.log('Нет изображений для галереи, скрываем секцию');
     // Если нет изображений, скрываем галерею
     const gallerySection = document.getElementById('tourGallerySection');
     if (gallerySection) gallerySection.style.display = 'none';
     return;
   }
+  
+  // Показываем галерею
+  const gallerySection = document.getElementById('tourGallerySection');
+  if (gallerySection) gallerySection.style.display = '';
   
   // Разделяем изображения на два ряда
   const firstRowImages = images.slice(0, Math.ceil(images.length / 2));
@@ -956,38 +977,60 @@ function updateTourGallery(tour) {
   
   // Заполняем первый ряд (с дублированием для бесконечной прокрутки)
   track1.innerHTML = '';
-  [...firstRowImages, ...firstRowImages].forEach(img => {
+  [...firstRowImages, ...firstRowImages].forEach(imgPath => {
     const imgEl = document.createElement('img');
-    imgEl.src = img.imagePath || img;
+    imgEl.src = imgPath;
     imgEl.alt = tour.title || 'Тур';
     track1.appendChild(imgEl);
   });
   
   // Заполняем второй ряд (с дублированием для бесконечной прокрутки)
   track2.innerHTML = '';
-  [...secondRowImages, ...secondRowImages].forEach(img => {
+  [...secondRowImages, ...secondRowImages].forEach(imgPath => {
     const imgEl = document.createElement('img');
-    imgEl.src = img.imagePath || img;
+    imgEl.src = imgPath;
     imgEl.alt = tour.title || 'Тур';
     track2.appendChild(imgEl);
   });
+  
+  console.log('Галерея обновлена:', { firstRow: firstRowImages.length, secondRow: secondRowImages.length });
 }
 
 // Обновление программы
 function updateTourProgram(tour) {
+  console.log('Обновление программы, tour.program:', tour.program);
   const programNav = document.getElementById('programNav');
   const programTrack = document.getElementById('programCarouselTrack');
   
-  if (!programNav || !programTrack) return;
+  if (!programNav || !programTrack) {
+    console.error('Элементы программы не найдены');
+    return;
+  }
   
-  const program = tour.program || [];
+  // Парсим program если это строка
+  let program = tour.program || [];
+  if (typeof program === 'string') {
+    try {
+      program = JSON.parse(program);
+    } catch (e) {
+      console.error('Ошибка парсинга program:', e);
+      program = [];
+    }
+  }
   
-  if (program.length === 0) {
+  console.log('Обработанная программа:', program);
+  
+  if (!Array.isArray(program) || program.length === 0) {
+    console.log('Программа пуста, скрываем секцию');
     // Если нет программы, скрываем секцию
     const programSection = document.getElementById('prgmSect');
     if (programSection) programSection.style.display = 'none';
     return;
   }
+  
+  // Показываем секцию программы
+  const programSection = document.getElementById('prgmSect');
+  if (programSection) programSection.style.display = '';
   
   // Очищаем навигацию и трек
   programNav.innerHTML = '';
@@ -1005,58 +1048,95 @@ function updateTourProgram(tour) {
   
   // Создаем слайды программы
   program.forEach((day, dayIndex) => {
+    // Поддерживаем разные форматы: day.items или day как массив строк
+    let items = [];
     if (day.items && Array.isArray(day.items)) {
-      day.items.forEach((item, itemIndex) => {
-        const slide = document.createElement('div');
-        slide.className = 'program-carousel__slide';
-        if (dayIndex === 0 && itemIndex === 0) slide.classList.add('active');
-        slide.setAttribute('data-day', dayIndex);
-        
-        // Медиа контент
-        const media = document.createElement('div');
-        media.className = 'program-carousel__media';
-        
-        // Левая колонка: высокое фото
-        const tallCol = document.createElement('div');
-        tallCol.className = 'media-col media-col--tall';
-        const tallImg = document.createElement('img');
-        tallImg.className = 'media-col__img';
-        tallImg.src = item.images && item.images[0] ? item.images[0] : '/static/images/fk1.png';
-        tallImg.alt = '';
-        tallCol.appendChild(tallImg);
-        media.appendChild(tallCol);
-        
-        // Правая колонка: два маленьких фото
-        const smallCol = document.createElement('div');
-        smallCol.className = 'media-col media-col--small';
-        
-        const smallImg1 = document.createElement('img');
-        smallImg1.className = 'media-col__img';
-        smallImg1.src = item.images && item.images[1] ? item.images[1] : '/static/images/fk2.png';
-        smallImg1.alt = '';
-        smallCol.appendChild(smallImg1);
-        
-        const smallImg2 = document.createElement('img');
-        smallImg2.className = 'media-col__img';
-        smallImg2.src = item.images && item.images[2] ? item.images[2] : '/static/images/fk3.png';
-        smallImg2.alt = '';
-        smallCol.appendChild(smallImg2);
-        
-        media.appendChild(smallCol);
-        slide.appendChild(media);
-        
-        // Текст
-        const text = document.createElement('div');
-        text.className = 'program-carousel__text';
-        const p = document.createElement('p');
-        p.textContent = item.description || item.text || '';
-        text.appendChild(p);
-        slide.appendChild(text);
-        
-        programTrack.appendChild(slide);
-      });
+      items = day.items;
+    } else if (Array.isArray(day)) {
+      items = day;
+    } else if (typeof day === 'string') {
+      // Если день - это просто строка, создаем один элемент
+      items = [{ description: day }];
     }
+    
+    if (items.length === 0) {
+      console.warn(`День ${dayIndex + 1} не имеет элементов`);
+      return;
+    }
+    
+    items.forEach((item, itemIndex) => {
+      const slide = document.createElement('div');
+      slide.className = 'program-carousel__slide';
+      if (dayIndex === 0 && itemIndex === 0) slide.classList.add('active');
+      slide.setAttribute('data-day', dayIndex);
+      
+      // Медиа контент
+      const media = document.createElement('div');
+      media.className = 'program-carousel__media';
+      
+      // Левая колонка: высокое фото
+      const tallCol = document.createElement('div');
+      tallCol.className = 'media-col media-col--tall';
+      const tallImg = document.createElement('img');
+      tallImg.className = 'media-col__img';
+      // Поддерживаем разные форматы изображений
+      let img1 = '/static/images/fk1.png';
+      if (item.images && Array.isArray(item.images) && item.images[0]) {
+        img1 = item.images[0];
+      } else if (item.image) {
+        img1 = item.image;
+      }
+      tallImg.src = img1;
+      tallImg.alt = '';
+      tallCol.appendChild(tallImg);
+      media.appendChild(tallCol);
+      
+      // Правая колонка: два маленьких фото
+      const smallCol = document.createElement('div');
+      smallCol.className = 'media-col media-col--small';
+      
+      const smallImg1 = document.createElement('img');
+      smallImg1.className = 'media-col__img';
+      let img2 = '/static/images/fk2.png';
+      if (item.images && Array.isArray(item.images) && item.images[1]) {
+        img2 = item.images[1];
+      }
+      smallImg1.src = img2;
+      smallImg1.alt = '';
+      smallCol.appendChild(smallImg1);
+      
+      const smallImg2 = document.createElement('img');
+      smallImg2.className = 'media-col__img';
+      let img3 = '/static/images/fk3.png';
+      if (item.images && Array.isArray(item.images) && item.images[2]) {
+        img3 = item.images[2];
+      }
+      smallImg2.src = img3;
+      smallImg2.alt = '';
+      smallCol.appendChild(smallImg2);
+      
+      media.appendChild(smallCol);
+      slide.appendChild(media);
+      
+      // Текст
+      const text = document.createElement('div');
+      text.className = 'program-carousel__text';
+      const p = document.createElement('p');
+      // Поддерживаем разные форматы текста
+      let description = item.description || item.text || item || '';
+      // Если описание содержит <br>, заменяем на переносы строк
+      if (typeof description === 'string' && description.includes('<br>')) {
+        description = description.replace(/<br>/g, '\n');
+      }
+      p.textContent = description;
+      text.appendChild(p);
+      slide.appendChild(text);
+      
+      programTrack.appendChild(slide);
+    });
   });
+  
+  console.log('Программа обновлена, создано слайдов:', programTrack.children.length);
   
   // Инициализируем карусель программы после загрузки
   setTimeout(() => {
