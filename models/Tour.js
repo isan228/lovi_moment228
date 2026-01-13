@@ -50,6 +50,43 @@ const Tour = sequelize.define('Tour', {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: true
   },
+  // Новые поля для tour-about страницы
+  slug: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    unique: true
+  },
+  headerImage: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  subtitle: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  priceWednesday: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true
+  },
+  priceFriday: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true
+  },
+  datesByMonth: {
+    type: DataTypes.JSON,
+    allowNull: true,
+    defaultValue: []
+  },
+  importantInfo: {
+    type: DataTypes.JSON,
+    allowNull: true,
+    defaultValue: {}
+  },
+  faq: {
+    type: DataTypes.JSON,
+    allowNull: true,
+    defaultValue: []
+  },
   tourTypeId: {
     type: DataTypes.INTEGER,
     allowNull: true,

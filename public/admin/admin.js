@@ -525,6 +525,17 @@ function showTourForm(tourId = null) {
                             <input type="text" id="tourTitle" required>
                         </div>
                         <div class="form-group">
+                            <label>Slug (URL)</label>
+                            <input type="text" id="tourSlug" placeholder="kel-su">
+                            <small style="color: #666; display: block; margin-top: 5px;">Используется в URL страницы тура (например: /tour-about/kel-su)</small>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Подзаголовок (для карточки)</label>
+                            <input type="text" id="tourSubtitle" placeholder="Трехдневный тур">
+                        </div>
+                        <div class="form-group">
                             <label>Страна</label>
                             <select id="tourCountryId">
                                 <option value="">Не выбрано</option>
@@ -534,14 +545,29 @@ function showTourForm(tourId = null) {
                         </div>
                     </div>
                     <div class="form-group">
+                        <label>Фоновое изображение header</label>
+                        <input type="text" id="tourHeaderImage" placeholder="/static/images/ala-kul2.jpg">
+                        <small style="color: #666; display: block; margin-top: 5px;">Путь к изображению для фона header</small>
+                    </div>
+                    <div class="form-group">
                         <label>Описание</label>
                         <textarea id="tourDescription"></textarea>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Цена</label>
+                            <label>Цена (общая)</label>
                             <input type="number" id="tourPrice" step="0.01">
                         </div>
+                        <div class="form-group">
+                            <label>Цена по средам</label>
+                            <input type="number" id="tourPriceWednesday" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label>Цена по пятницам</label>
+                            <input type="number" id="tourPriceFriday" step="0.01">
+                        </div>
+                    </div>
+                    <div class="form-row">
                         <div class="form-group">
                             <label>Вид тура</label>
                             <select id="tourTypeId">
@@ -628,13 +654,21 @@ function showTourForm(tourId = null) {
             fetch(`/api/admin/tours/${tourId}`)
                 .then(res => res.json())
                 .then(data => {
-                    document.getElementById('tourTitle').value = data.title;
+                    document.getElementById('tourTitle').value = data.title || '';
+                    document.getElementById('tourSlug').value = data.slug || '';
+                    document.getElementById('tourSubtitle').value = data.subtitle || '';
+                    document.getElementById('tourHeaderImage').value = data.headerImage || '';
                     document.getElementById('tourDescription').value = data.description || '';
                     document.getElementById('tourCountryId').value = data.countryId || '';
                     document.getElementById('tourCountry').value = data.country || 'Кыргызстан';
                     document.getElementById('tourPrice').value = data.price || '';
+                    document.getElementById('tourPriceWednesday').value = data.priceWednesday || '';
+                    document.getElementById('tourPriceFriday').value = data.priceFriday || '';
                     document.getElementById('tourTypeId').value = data.tourTypeId || '';
                     document.getElementById('tourIsActive').checked = data.isActive;
+                    document.getElementById('tourDatesByMonth').value = data.datesByMonth ? JSON.stringify(data.datesByMonth, null, 2) : '';
+                    document.getElementById('tourImportantInfo').value = data.importantInfo ? JSON.stringify(data.importantInfo, null, 2) : '';
+                    document.getElementById('tourFaq').value = data.faq ? JSON.stringify(data.faq, null, 2) : '';
                     
                     // Устанавливаем количество дней и программу
                     const daysCount = data.daysCount || 1;
@@ -663,14 +697,56 @@ function showTourForm(tourId = null) {
                 }
             }
             
+            // Парсим JSON поля
+            let datesByMonth = [];
+            try {
+                const datesByMonthText = document.getElementById('tourDatesByMonth').value.trim();
+                if (datesByMonthText) {
+                    datesByMonth = JSON.parse(datesByMonthText);
+                }
+            } catch (e) {
+                alert('Ошибка в формате дат по месяцам. Проверьте JSON.');
+                return;
+            }
+
+            let importantInfo = {};
+            try {
+                const importantInfoText = document.getElementById('tourImportantInfo').value.trim();
+                if (importantInfoText) {
+                    importantInfo = JSON.parse(importantInfoText);
+                }
+            } catch (e) {
+                alert('Ошибка в формате важной информации. Проверьте JSON.');
+                return;
+            }
+
+            let faq = [];
+            try {
+                const faqText = document.getElementById('tourFaq').value.trim();
+                if (faqText) {
+                    faq = JSON.parse(faqText);
+                }
+            } catch (e) {
+                alert('Ошибка в формате FAQ. Проверьте JSON.');
+                return;
+            }
+
             const data = {
                 title: document.getElementById('tourTitle').value,
+                slug: document.getElementById('tourSlug').value || null,
+                subtitle: document.getElementById('tourSubtitle').value || null,
+                headerImage: document.getElementById('tourHeaderImage').value || null,
                 description: document.getElementById('tourDescription').value,
                 country: document.getElementById('tourCountry').value || null,
                 countryId: document.getElementById('tourCountryId').value || null,
                 daysCount: daysCount,
                 program: program,
                 price: parseFloat(document.getElementById('tourPrice').value) || null,
+                priceWednesday: parseFloat(document.getElementById('tourPriceWednesday').value) || null,
+                priceFriday: parseFloat(document.getElementById('tourPriceFriday').value) || null,
+                datesByMonth: datesByMonth,
+                importantInfo: importantInfo,
+                faq: faq,
                 tourTypeId: document.getElementById('tourTypeId').value || null,
                 isActive: document.getElementById('tourIsActive').checked
             };

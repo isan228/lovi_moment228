@@ -105,6 +105,50 @@ app.get('/api/tour-types', async (req, res) => {
   }
 });
 
+// Получить тур по slug (публичный)
+app.get('/api/tours/:slug', async (req, res) => {
+  try {
+    const { Tour, TourType, TourImage, Country } = require('./models');
+    const tour = await Tour.findOne({
+      where: { slug: req.params.slug, isActive: true },
+      include: [
+        { model: TourType, as: 'tourType' },
+        { model: TourImage, as: 'images', order: [['order', 'ASC']] },
+        { model: Country, as: 'countryData' }
+      ]
+    });
+    
+    if (!tour) {
+      return res.status(404).json({ error: 'Тур не найден' });
+    }
+    
+    res.json(tour);
+  } catch (error) {
+    console.error('Ошибка при получении тура:', error);
+    res.status(500).json({ error: 'Ошибка при получении тура' });
+  }
+});
+
+// Получить все активные туры (публичный)
+app.get('/api/tours', async (req, res) => {
+  try {
+    const { Tour, TourType, TourImage, Country } = require('./models');
+    const tours = await Tour.findAll({
+      where: { isActive: true },
+      include: [
+        { model: TourType, as: 'tourType' },
+        { model: TourImage, as: 'images', order: [['order', 'ASC']] },
+        { model: Country, as: 'countryData' }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
+    res.json(tours);
+  } catch (error) {
+    console.error('Ошибка при получении туров:', error);
+    res.json([]);
+  }
+});
+
 // Получить фотографии галереи (публичные)
 app.get('/api/gallery', async (req, res) => {
   try {

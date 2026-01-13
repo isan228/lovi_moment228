@@ -46,13 +46,17 @@ router.get('/:id', requireAuth, async (req, res) => {
 // Создать тур
 router.post('/', requireAuth, async (req, res) => {
   try {
-    const { title, description, location, country, countryId, duration, daysCount, program, price, tourTypeId, isActive } = req.body;
+    const { 
+      title, description, location, country, countryId, duration, daysCount, program, 
+      price, priceWednesday, priceFriday, slug, headerImage, subtitle, 
+      datesByMonth, importantInfo, faq, tourTypeId, isActive 
+    } = req.body;
     
     if (!title) {
       return res.status(400).json({ error: 'Название обязательно' });
     }
 
-    // Парсим program если это строка
+    // Парсим JSON поля если это строки
     let programArray = [];
     if (program) {
       if (typeof program === 'string') {
@@ -66,6 +70,45 @@ router.post('/', requireAuth, async (req, res) => {
       }
     }
 
+    let datesByMonthArray = [];
+    if (datesByMonth) {
+      if (typeof datesByMonth === 'string') {
+        try {
+          datesByMonthArray = JSON.parse(datesByMonth);
+        } catch (e) {
+          datesByMonthArray = Array.isArray(datesByMonth) ? datesByMonth : [];
+        }
+      } else if (Array.isArray(datesByMonth)) {
+        datesByMonthArray = datesByMonth;
+      }
+    }
+
+    let importantInfoObj = {};
+    if (importantInfo) {
+      if (typeof importantInfo === 'string') {
+        try {
+          importantInfoObj = JSON.parse(importantInfo);
+        } catch (e) {
+          importantInfoObj = typeof importantInfo === 'object' ? importantInfo : {};
+        }
+      } else if (typeof importantInfo === 'object') {
+        importantInfoObj = importantInfo;
+      }
+    }
+
+    let faqArray = [];
+    if (faq) {
+      if (typeof faq === 'string') {
+        try {
+          faqArray = JSON.parse(faq);
+        } catch (e) {
+          faqArray = Array.isArray(faq) ? faq : [];
+        }
+      } else if (Array.isArray(faq)) {
+        faqArray = faq;
+      }
+    }
+
     const tour = await Tour.create({
       title,
       description,
@@ -76,6 +119,14 @@ router.post('/', requireAuth, async (req, res) => {
       daysCount: daysCount || 1,
       program: programArray,
       price,
+      priceWednesday,
+      priceFriday,
+      slug: slug || null,
+      headerImage: headerImage || null,
+      subtitle: subtitle || null,
+      datesByMonth: datesByMonthArray,
+      importantInfo: importantInfoObj,
+      faq: faqArray,
       tourTypeId: tourTypeId || null,
       isActive: isActive !== undefined ? isActive : true
     });
@@ -98,14 +149,18 @@ router.post('/', requireAuth, async (req, res) => {
 // Обновить тур
 router.put('/:id', requireAuth, async (req, res) => {
   try {
-    const { title, description, location, country, countryId, duration, daysCount, program, price, tourTypeId, isActive } = req.body;
+    const { 
+      title, description, location, country, countryId, duration, daysCount, program, 
+      price, priceWednesday, priceFriday, slug, headerImage, subtitle, 
+      datesByMonth, importantInfo, faq, tourTypeId, isActive 
+    } = req.body;
     const tour = await Tour.findByPk(req.params.id);
     
     if (!tour) {
       return res.status(404).json({ error: 'Тур не найден' });
     }
 
-    // Парсим program если это строка
+    // Парсим JSON поля если это строки
     if (program !== undefined) {
       let programArray = [];
       if (program) {
@@ -122,7 +177,55 @@ router.put('/:id', requireAuth, async (req, res) => {
       tour.program = programArray;
     }
 
-    tour.title = title || tour.title;
+    if (datesByMonth !== undefined) {
+      let datesByMonthArray = [];
+      if (datesByMonth) {
+        if (typeof datesByMonth === 'string') {
+          try {
+            datesByMonthArray = JSON.parse(datesByMonth);
+          } catch (e) {
+            datesByMonthArray = Array.isArray(datesByMonth) ? datesByMonth : [];
+          }
+        } else if (Array.isArray(datesByMonth)) {
+          datesByMonthArray = datesByMonth;
+        }
+      }
+      tour.datesByMonth = datesByMonthArray;
+    }
+
+    if (importantInfo !== undefined) {
+      let importantInfoObj = {};
+      if (importantInfo) {
+        if (typeof importantInfo === 'string') {
+          try {
+            importantInfoObj = JSON.parse(importantInfo);
+          } catch (e) {
+            importantInfoObj = typeof importantInfo === 'object' ? importantInfo : {};
+          }
+        } else if (typeof importantInfo === 'object') {
+          importantInfoObj = importantInfo;
+        }
+      }
+      tour.importantInfo = importantInfoObj;
+    }
+
+    if (faq !== undefined) {
+      let faqArray = [];
+      if (faq) {
+        if (typeof faq === 'string') {
+          try {
+            faqArray = JSON.parse(faq);
+          } catch (e) {
+            faqArray = Array.isArray(faq) ? faq : [];
+          }
+        } else if (Array.isArray(faq)) {
+          faqArray = faq;
+        }
+      }
+      tour.faq = faqArray;
+    }
+
+    tour.title = title !== undefined ? title : tour.title;
     tour.description = description !== undefined ? description : tour.description;
     tour.location = location !== undefined ? location : tour.location;
     tour.country = country !== undefined ? country : tour.country;
@@ -130,6 +233,11 @@ router.put('/:id', requireAuth, async (req, res) => {
     tour.duration = duration !== undefined ? duration : tour.duration;
     tour.daysCount = daysCount !== undefined ? daysCount : tour.daysCount;
     tour.price = price !== undefined ? price : tour.price;
+    tour.priceWednesday = priceWednesday !== undefined ? priceWednesday : tour.priceWednesday;
+    tour.priceFriday = priceFriday !== undefined ? priceFriday : tour.priceFriday;
+    tour.slug = slug !== undefined ? slug : tour.slug;
+    tour.headerImage = headerImage !== undefined ? headerImage : tour.headerImage;
+    tour.subtitle = subtitle !== undefined ? subtitle : tour.subtitle;
     tour.tourTypeId = tourTypeId !== undefined ? tourTypeId : tour.tourTypeId;
     tour.isActive = isActive !== undefined ? isActive : tour.isActive;
     
