@@ -604,6 +604,77 @@ function showTourForm(tourId = null) {
         
         document.getElementById('toursList').innerHTML = form;
         
+        // Функция для добавления дня недели с ценой
+        function addPriceDay(day = '', price = '') {
+            const container = document.getElementById('tourPricesByDayContainer');
+            if (!container) return;
+            
+            const dayDiv = document.createElement('div');
+            dayDiv.className = 'form-group';
+            dayDiv.style.marginBottom = '10px';
+            dayDiv.style.padding = '10px';
+            dayDiv.style.border = '1px solid #ddd';
+            dayDiv.style.borderRadius = '4px';
+            dayDiv.style.backgroundColor = '#f9f9f9';
+            dayDiv.style.display = 'flex';
+            dayDiv.style.gap = '10px';
+            dayDiv.style.alignItems = 'center';
+            
+            const dayInput = document.createElement('input');
+            dayInput.type = 'text';
+            dayInput.placeholder = 'День недели (например: среда)';
+            dayInput.value = day;
+            dayInput.style.flex = '1';
+            dayInput.style.padding = '8px';
+            dayInput.style.border = '1px solid #ccc';
+            dayInput.style.borderRadius = '4px';
+            
+            const priceInput = document.createElement('input');
+            priceInput.type = 'number';
+            priceInput.placeholder = 'Цена';
+            priceInput.step = '0.01';
+            priceInput.value = price;
+            priceInput.style.width = '150px';
+            priceInput.style.padding = '8px';
+            priceInput.style.border = '1px solid #ccc';
+            priceInput.style.borderRadius = '4px';
+            
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.textContent = 'Удалить';
+            removeBtn.className = 'btn btn-danger';
+            removeBtn.onclick = () => dayDiv.remove();
+            
+            dayDiv.appendChild(dayInput);
+            dayDiv.appendChild(priceInput);
+            dayDiv.appendChild(removeBtn);
+            container.appendChild(dayDiv);
+        }
+        
+        // Обработчик кнопки добавления дня
+        const addPriceDayBtn = document.getElementById('addPriceDayBtn');
+        if (addPriceDayBtn) {
+            addPriceDayBtn.addEventListener('click', () => addPriceDay());
+        }
+        
+        // Превью загруженного изображения
+        const headerImageInput = document.getElementById('tourHeaderImage');
+        if (headerImageInput) {
+            headerImageInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                const preview = document.getElementById('tourHeaderImagePreview');
+                if (file && preview) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        preview.innerHTML = '<img src="' + e.target.result + '" style="max-width: 200px; max-height: 150px; border-radius: 4px;">';
+                    };
+                    reader.readAsDataURL(file);
+                } else if (preview) {
+                    preview.innerHTML = '';
+                }
+            });
+        }
+        
         // Функция для обновления полей программы при изменении количества дней
         function updateProgramFields(daysCount, existingProgram = []) {
             const container = document.getElementById('tourProgramContainer');
