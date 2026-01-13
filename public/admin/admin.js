@@ -624,14 +624,45 @@ function showTourForm(tourId = null) {
                         <small style="color: #666; display: block; margin-top: 5px;">Заполните программу для каждого дня тура</small>
                     </div>
                     <div class="form-group">
-                        <label>Важная информация (JSON)</label>
-                        <textarea id="tourImportantInfo" rows="6" placeholder='Пример: {"included": ["Проживание", "Трансфер"], "notIncluded": ["Авиаперелет"], "payment": ["Предоплата 30%"]}'></textarea>
-                        <small style="color: #666; display: block; margin-top: 5px;">Оставьте пустым, если нет информации. Формат: JSON объект.</small>
+                        <label>Важная информация</label>
+                        <button type="button" id="openImportantInfoModalBtn" class="btn btn-primary" style="margin-bottom: 10px;">Управление важной информацией</button>
+                        <div id="tourImportantInfoSummary" style="color: #666; font-size: 14px; margin-top: 5px;">
+                            Информация не заполнена
+                        </div>
+                        <div id="importantInfoModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; overflow-y: auto;">
+                            <div style="background: white; margin: 50px auto; padding: 20px; max-width: 800px; border-radius: 8px; position: relative;">
+                                <button type="button" id="closeImportantInfoModalBtn" style="position: absolute; top: 10px; right: 10px; background: #f44336; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">✕</button>
+                                <h3 style="margin-top: 0;">Управление важной информацией</h3>
+                                <div id="importantInfoModalContent">
+                                    <!-- Содержимое будет добавлено динамически -->
+                                </div>
+                                <div style="margin-top: 20px; text-align: right;">
+                                    <button type="button" id="saveImportantInfoBtn" class="btn btn-success">Сохранить</button>
+                                    <button type="button" id="cancelImportantInfoBtn" class="btn btn-primary">Отмена</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="form-group">
-                        <label>Часто задаваемые вопросы (JSON)</label>
-                        <textarea id="tourFaq" rows="6" placeholder='Пример: [{"question": "Вопрос?", "answer": "Ответ"}]'></textarea>
-                        <small style="color: #666; display: block; margin-top: 5px;">Оставьте пустым, если нет вопросов. Формат: JSON массив объектов.</small>
+                        <label>Часто задаваемые вопросы</label>
+                        <button type="button" id="openFaqModalBtn" class="btn btn-primary" style="margin-bottom: 10px;">Управление вопросами и ответами</button>
+                        <div id="tourFaqSummary" style="color: #666; font-size: 14px; margin-top: 5px;">
+                            Вопросы не добавлены
+                        </div>
+                        <div id="faqModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; overflow-y: auto;">
+                            <div style="background: white; margin: 50px auto; padding: 20px; max-width: 800px; border-radius: 8px; position: relative;">
+                                <button type="button" id="closeFaqModalBtn" style="position: absolute; top: 10px; right: 10px; background: #f44336; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">✕</button>
+                                <h3 style="margin-top: 0;">Управление вопросами и ответами</h3>
+                                <div id="faqModalContent">
+                                    <!-- Содержимое будет добавлено динамически -->
+                                </div>
+                                <div style="margin-top: 20px; text-align: right;">
+                                    <button type="button" id="addFaqItemBtn" class="btn btn-primary" style="margin-right: 10px;">+ Добавить вопрос</button>
+                                    <button type="button" id="saveFaqBtn" class="btn btn-success">Сохранить</button>
+                                    <button type="button" id="cancelFaqBtn" class="btn btn-primary">Отмена</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>
@@ -667,6 +698,266 @@ function showTourForm(tourId = null) {
         
         // Данные для цен по дням недели (хранятся в памяти)
         let pricesByDayData = [];
+        
+        // Данные для важной информации (хранятся в памяти)
+        let importantInfoData = {
+            included: [],
+            notIncluded: [],
+            payment: []
+        };
+        
+        // Данные для FAQ (хранятся в памяти)
+        let faqData = [];
+        
+        // Функция для открытия модального окна с важной информацией
+        function openImportantInfoModal() {
+            console.log('Открытие модального окна с важной информацией');
+            const modal = document.getElementById('importantInfoModal');
+            const content = document.getElementById('importantInfoModalContent');
+            
+            if (!modal || !content) {
+                console.error('Элементы модального окна важной информации не найдены');
+                return;
+            }
+            
+            // Генерируем интерфейс для трех секций
+            content.innerHTML = `
+                <div style="margin-bottom: 30px;">
+                    <h4 style="margin-bottom: 15px;">Что включено в стоимость</h4>
+                    <div id="includedList" style="margin-bottom: 10px;">
+                        ${importantInfoData.included.map((item, index) => `
+                            <div style="display: flex; gap: 10px; margin-bottom: 10px; align-items: center;">
+                                <input type="text" data-type="included" data-index="${index}" value="${item.replace(/"/g, '&quot;')}" style="flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                                <button type="button" class="btn btn-danger" onclick="removeImportantInfoItem('included', ${index})" style="padding: 5px 10px;">X</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="addImportantInfoItem('included')" style="margin-top: 10px;">+ Добавить</button>
+                </div>
+                
+                <div style="margin-bottom: 30px;">
+                    <h4 style="margin-bottom: 15px;">В стоимость не включены</h4>
+                    <div id="notIncludedList" style="margin-bottom: 10px;">
+                        ${importantInfoData.notIncluded.map((item, index) => `
+                            <div style="display: flex; gap: 10px; margin-bottom: 10px; align-items: center;">
+                                <input type="text" data-type="notIncluded" data-index="${index}" value="${item.replace(/"/g, '&quot;')}" style="flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                                <button type="button" class="btn btn-danger" onclick="removeImportantInfoItem('notIncluded', ${index})" style="padding: 5px 10px;">X</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="addImportantInfoItem('notIncluded')" style="margin-top: 10px;">+ Добавить</button>
+                </div>
+                
+                <div style="margin-bottom: 30px;">
+                    <h4 style="margin-bottom: 15px;">Условия оплаты и отмены</h4>
+                    <div id="paymentList" style="margin-bottom: 10px;">
+                        ${importantInfoData.payment.map((item, index) => `
+                            <div style="display: flex; gap: 10px; margin-bottom: 10px; align-items: center;">
+                                <input type="text" data-type="payment" data-index="${index}" value="${item.replace(/"/g, '&quot;')}" style="flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                                <button type="button" class="btn btn-danger" onclick="removeImportantInfoItem('payment', ${index})" style="padding: 5px 10px;">X</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="addImportantInfoItem('payment')" style="margin-top: 10px;">+ Добавить</button>
+                </div>
+            `;
+            
+            modal.style.display = 'block';
+        }
+        
+        // Функция для добавления элемента в важную информацию
+        window.addImportantInfoItem = function(type) {
+            importantInfoData[type].push('');
+            openImportantInfoModal(); // Переоткрываем модальное окно для обновления
+        };
+        
+        // Функция для удаления элемента из важной информации
+        window.removeImportantInfoItem = function(type, index) {
+            importantInfoData[type].splice(index, 1);
+            openImportantInfoModal(); // Переоткрываем модальное окно для обновления
+        };
+        
+        // Функция для закрытия модального окна с важной информацией
+        function closeImportantInfoModal() {
+            document.getElementById('importantInfoModal').style.display = 'none';
+        }
+        
+        // Функция для сохранения важной информации
+        function saveImportantInfo() {
+            // Собираем данные из полей ввода
+            const includedInputs = document.querySelectorAll('#includedList input[type="text"]');
+            const notIncludedInputs = document.querySelectorAll('#notIncludedList input[type="text"]');
+            const paymentInputs = document.querySelectorAll('#paymentList input[type="text"]');
+            
+            importantInfoData.included = Array.from(includedInputs).map(input => input.value.trim()).filter(v => v);
+            importantInfoData.notIncluded = Array.from(notIncludedInputs).map(input => input.value.trim()).filter(v => v);
+            importantInfoData.payment = Array.from(paymentInputs).map(input => input.value.trim()).filter(v => v);
+            
+            updateImportantInfoSummary();
+            closeImportantInfoModal();
+        }
+        
+        // Функция для обновления сводки важной информации
+        function updateImportantInfoSummary() {
+            const summary = document.getElementById('tourImportantInfoSummary');
+            if (!summary) return;
+            
+            const total = importantInfoData.included.length + importantInfoData.notIncluded.length + importantInfoData.payment.length;
+            if (total === 0) {
+                summary.textContent = 'Информация не заполнена';
+                summary.style.color = '#666';
+            } else {
+                summary.textContent = `Заполнено: включено (${importantInfoData.included.length}), не включено (${importantInfoData.notIncluded.length}), оплата (${importantInfoData.payment.length})`;
+                summary.style.color = '#333';
+            }
+        }
+        
+        // Функция для открытия модального окна с FAQ
+        function openFaqModal() {
+            console.log('Открытие модального окна с FAQ');
+            const modal = document.getElementById('faqModal');
+            const content = document.getElementById('faqModalContent');
+            
+            if (!modal || !content) {
+                console.error('Элементы модального окна FAQ не найдены');
+                return;
+            }
+            
+            // Генерируем интерфейс для вопросов и ответов
+            content.innerHTML = faqData.map((item, index) => `
+                <div style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h4 style="margin: 0;">Вопрос ${index + 1}</h4>
+                        <button type="button" class="btn btn-danger" onclick="removeFaqItem(${index})" style="padding: 5px 10px;">X Удалить</button>
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">Вопрос:</label>
+                        <input type="text" data-index="${index}" data-field="question" value="${(item.question || '').replace(/"/g, '&quot;')}" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">Ответ:</label>
+                        <textarea data-index="${index}" data-field="answer" rows="4" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">${(item.answer || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
+                    </div>
+                </div>
+            `).join('');
+            
+            modal.style.display = 'block';
+        }
+        
+        // Функция для добавления нового вопроса
+        window.addFaqItem = function() {
+            faqData.push({ question: '', answer: '' });
+            openFaqModal(); // Переоткрываем модальное окно для обновления
+        };
+        
+        // Функция для удаления вопроса
+        window.removeFaqItem = function(index) {
+            faqData.splice(index, 1);
+            openFaqModal(); // Переоткрываем модальное окно для обновления
+        };
+        
+        // Функция для закрытия модального окна с FAQ
+        function closeFaqModal() {
+            document.getElementById('faqModal').style.display = 'none';
+        }
+        
+        // Функция для сохранения FAQ
+        function saveFaq() {
+            // Собираем данные из полей ввода
+            const questionInputs = document.querySelectorAll('#faqModalContent input[data-field="question"]');
+            const answerInputs = document.querySelectorAll('#faqModalContent textarea[data-field="answer"]');
+            
+            faqData = [];
+            questionInputs.forEach((input, index) => {
+                const question = input.value.trim();
+                const answer = answerInputs[index] ? answerInputs[index].value.trim() : '';
+                if (question || answer) {
+                    faqData.push({ question, answer });
+                }
+            });
+            
+            updateFaqSummary();
+            closeFaqModal();
+        }
+        
+        // Функция для обновления сводки FAQ
+        function updateFaqSummary() {
+            const summary = document.getElementById('tourFaqSummary');
+            if (!summary) return;
+            
+            if (faqData.length === 0) {
+                summary.textContent = 'Вопросы не добавлены';
+                summary.style.color = '#666';
+            } else {
+                summary.textContent = `Добавлено вопросов: ${faqData.length}`;
+                summary.style.color = '#333';
+            }
+        }
+        
+        // Обработчики для модальных окон
+        setTimeout(() => {
+            // Важная информация
+            const openImportantInfoModalBtn = document.getElementById('openImportantInfoModalBtn');
+            const closeImportantInfoModalBtn = document.getElementById('closeImportantInfoModalBtn');
+            const saveImportantInfoBtn = document.getElementById('saveImportantInfoBtn');
+            const cancelImportantInfoBtn = document.getElementById('cancelImportantInfoBtn');
+            const importantInfoModal = document.getElementById('importantInfoModal');
+            
+            if (openImportantInfoModalBtn) {
+                openImportantInfoModalBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openImportantInfoModal();
+                });
+            }
+            if (closeImportantInfoModalBtn) {
+                closeImportantInfoModalBtn.addEventListener('click', closeImportantInfoModal);
+            }
+            if (saveImportantInfoBtn) {
+                saveImportantInfoBtn.addEventListener('click', saveImportantInfo);
+            }
+            if (cancelImportantInfoBtn) {
+                cancelImportantInfoBtn.addEventListener('click', closeImportantInfoModal);
+            }
+            if (importantInfoModal) {
+                importantInfoModal.addEventListener('click', (e) => {
+                    if (e.target === importantInfoModal) {
+                        closeImportantInfoModal();
+                    }
+                });
+            }
+            
+            // FAQ
+            const openFaqModalBtn = document.getElementById('openFaqModalBtn');
+            const closeFaqModalBtn = document.getElementById('closeFaqModalBtn');
+            const saveFaqBtn = document.getElementById('saveFaqBtn');
+            const cancelFaqBtn = document.getElementById('cancelFaqBtn');
+            const faqModal = document.getElementById('faqModal');
+            
+            if (openFaqModalBtn) {
+                openFaqModalBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openFaqModal();
+                });
+            }
+            if (closeFaqModalBtn) {
+                closeFaqModalBtn.addEventListener('click', closeFaqModal);
+            }
+            if (saveFaqBtn) {
+                saveFaqBtn.addEventListener('click', saveFaq);
+            }
+            if (cancelFaqBtn) {
+                cancelFaqBtn.addEventListener('click', closeFaqModal);
+            }
+            if (faqModal) {
+                faqModal.addEventListener('click', (e) => {
+                    if (e.target === faqModal) {
+                        closeFaqModal();
+                    }
+                });
+            }
+        }, 200);
         
         // Дни недели
         const weekDays = [
@@ -1110,8 +1401,21 @@ function showTourForm(tourId = null) {
                     datesByMonthData = data.datesByMonth && Array.isArray(data.datesByMonth) ? data.datesByMonth : [];
                     updateDatesSummary();
                     
-                    document.getElementById('tourImportantInfo').value = data.importantInfo ? JSON.stringify(data.importantInfo, null, 2) : '';
-                    document.getElementById('tourFaq').value = data.faq ? JSON.stringify(data.faq, null, 2) : '';
+                    // Загружаем важную информацию
+                    if (data.importantInfo && typeof data.importantInfo === 'object') {
+                        importantInfoData = {
+                            included: Array.isArray(data.importantInfo.included) ? data.importantInfo.included : [],
+                            notIncluded: Array.isArray(data.importantInfo.notIncluded) ? data.importantInfo.notIncluded : [],
+                            payment: Array.isArray(data.importantInfo.payment) ? data.importantInfo.payment : []
+                        };
+                    } else {
+                        importantInfoData = { included: [], notIncluded: [], payment: [] };
+                    }
+                    updateImportantInfoSummary();
+                    
+                    // Загружаем FAQ
+                    faqData = data.faq && Array.isArray(data.faq) ? data.faq : [];
+                    updateFaqSummary();
                     
                     // Загружаем цены по дням недели
                     pricesByDayData = data.pricesByDay && Array.isArray(data.pricesByDay) ? data.pricesByDay : [];
@@ -1128,8 +1432,8 @@ function showTourForm(tourId = null) {
             updateProgramFields(1);
             
             // Устанавливаем дефолтные значения для важной информации и FAQ
-            const defaultImportantInfo = {
-                "included": [
+            importantInfoData = {
+                included: [
                     "Проживание в отелях и юрточных лагерях по программе",
                     "Трансфер по программе (из аэропорта в аэропорт)",
                     "Русскоговорящий гид",
@@ -1141,13 +1445,13 @@ function showTourForm(tourId = null) {
                     "Пикник",
                     "Вода в машине на протяжении всего тура"
                 ],
-                "notIncluded": [
+                notIncluded: [
                     "Авиаперелет в Бишкек и обратно",
                     "Виза в Кыргызстан (при необходимости)",
                     "Личные расходы и чаевые",
                     "Страховка"
                 ],
-                "payment": [
+                payment: [
                     "Предоплата 30% при бронировании",
                     "Остаток вносится за 14 дней до начала тура",
                     "Бесплатная отмена за 7 дней до старта",
@@ -1155,74 +1459,67 @@ function showTourForm(tourId = null) {
                 ]
             };
             
-            const defaultFaq = [
+            faqData = [
                 {
-                    "question": "Какие достопримечательности можно увидеть в Кыргызстане?",
-                    "answer": "На локации \"Кёл-Суу\" вас ждут захватывающие достопримечательности:\n\n• Уникальное озеро Кёл-Суу с его изумрудной водой\n• Виды Тянь-Шаня и его ледники\n• Традиционные юрты и мастер-классы по ремеслам\n• Конные прогулки по живописным маршрутам\n• Фотосессии на фоне горных пейзажей"
+                    question: "Какие достопримечательности можно увидеть в Кыргызстане?",
+                    answer: "На локации \"Кёл-Суу\" вас ждут захватывающие достопримечательности:\n\n• Уникальное озеро Кёл-Суу с его изумрудной водой\n• Виды Тянь-Шаня и его ледники\n• Традиционные юрты и мастер-классы по ремеслам\n• Конные прогулки по живописным маршрутам\n• Фотосессии на фоне горных пейзажей"
                 },
                 {
-                    "question": "Сколько длится стандартный тур по Кыргызстану?",
-                    "answer": "Наш стандартный тур включает 3 ночи и 4 дня активной программы."
+                    question: "Сколько длится стандартный тур по Кыргызстану?",
+                    answer: "Наш стандартный тур включает 3 ночи и 4 дня активной программы."
                 },
                 {
-                    "question": "Можно ли адаптировать маршрут под индивидуальные пожелания?",
-                    "answer": "Да, мы всегда рады подстроить программу под ваши пожелания и сроки."
+                    question: "Можно ли адаптировать маршрут под индивидуальные пожелания?",
+                    answer: "Да, мы всегда рады подстроить программу под ваши пожелания и сроки."
                 },
                 {
-                    "question": "Какие документы нужны для въезда в Кыргызстан?",
-                    "answer": "Гражданам РФ достаточно загранпаспорта или паспорта гражданина РФ; виза не требуется."
+                    question: "Какие документы нужны для въезда в Кыргызстан?",
+                    answer: "Гражданам РФ достаточно загранпаспорта или паспорта гражданина РФ; виза не требуется."
                 },
                 {
-                    "question": "Нужна ли специальная физическая подготовка?",
-                    "answer": "Специальная подготовка не требуется, но возможны переезды по нескольку часов между локациями. В дороге предусмотрен комфорт (включая питьевую воду).\n\n🐎 В программе — спокойная конная прогулка на обученных лошадях. Достаточно следовать инструкциям гида.\n\n🚶‍♀️ Также будут лёгкие треккинги (до 2 часов, с плавным набором высоты) — подходят для любого уровня активности."
+                    question: "Нужна ли специальная физическая подготовка?",
+                    answer: "Специальная подготовка не требуется, но возможны переезды по нескольку часов между локациями. В дороге предусмотрен комфорт (включая питьевую воду).\n\n🐎 В программе — спокойная конная прогулка на обученных лошадях. Достаточно следовать инструкциям гида.\n\n🚶‍♀️ Также будут лёгкие треккинги (до 2 часов, с плавным набором высоты) — подходят для любого уровня активности."
                 },
                 {
-                    "question": "Какое питание по программе? Доступно ли вегетарианское?",
-                    "answer": "Завтраки, обеды и ужины в юрточных лагерях, гостевых домах и отелях. Основа — кыргызская кухня (бешбармак, куурдак, лагман, манты, боорсоки и др.).\n\n🍽️ Меню составлено так, чтобы блюда не повторялись. Вегетарианское питание доступно — сообщите заранее, доплат нет.\n\n⚠️ Порции щедрые — готовьтесь к обильным угощениям!"
+                    question: "Какое питание по программе? Доступно ли вегетарианское?",
+                    answer: "Завтраки, обеды и ужины в юрточных лагерях, гостевых домах и отелях. Основа — кыргызская кухня (бешбармак, куурдак, лагман, манты, боорсоки и др.).\n\n🍽️ Меню составлено так, чтобы блюда не повторялись. Вегетарианское питание доступно — сообщите заранее, доплат нет.\n\n⚠️ Порции щедрые — готовьтесь к обильным угощениям!"
                 },
                 {
-                    "question": "Нужна ли страховка для путешествия?",
-                    "answer": "Рекомендуем оформить страховку для путешествий, покрывающую активные виды отдыха (треккинг, конные прогулки)."
+                    question: "Нужна ли страховка для путешествия?",
+                    answer: "Рекомендуем оформить страховку для путешествий, покрывающую активные виды отдыха (треккинг, конные прогулки)."
                 },
                 {
-                    "question": "Когда планировать прилёт и вылет?",
-                    "answer": "Прилёт: в первый день тура до 12:00 (встреча в аэропорту).\n\nВылет: в последний день тура после 14:00 (трансфер в аэропорт)."
+                    question: "Когда планировать прилёт и вылет?",
+                    answer: "Прилёт: в первый день тура до 12:00 (встреча в аэропорту).\n\nВылет: в последний день тура после 14:00 (трансфер в аэропорт)."
                 },
                 {
-                    "question": "Какую одежду брать? Рекомендации по сезонам",
-                    "answer": "Лето (июнь-август): лёгкая одежда + тёплая кофта/ветровка для вечеров и гор.\n\nВесна/осень: многослойная одежда, непромокаемая куртка.\n\nЗима: тёплая одежда, термобельё, непромокаемая обувь.\n\nОбязательно: удобная обувь для ходьбы, солнцезащитные очки, головной убор."
+                    question: "Какую одежду брать? Рекомендации по сезонам",
+                    answer: "Лето (июнь-август): лёгкая одежда + тёплая кофта/ветровка для вечеров и гор.\n\nВесна/осень: многослойная одежда, непромокаемая куртка.\n\nЗима: тёплая одежда, термобельё, непромокаемая обувь.\n\nОбязательно: удобная обувь для ходьбы, солнцезащитные очки, головной убор."
                 },
                 {
-                    "question": "Какая сумма на доп. расходы? Можно ли картой?",
-                    "answer": "Рекомендуем иметь при себе 200-300 USD наличными на личные расходы, сувениры и чаевые.\n\n💳 Карты принимаются в крупных городах, но в отдалённых местах — только наличные. Лучше иметь сомы (местная валюта)."
+                    question: "Какая сумма на доп. расходы? Можно ли картой?",
+                    answer: "Рекомендуем иметь при себе 200-300 USD наличными на личные расходы, сувениры и чаевые.\n\n💳 Карты принимаются в крупных городах, но в отдалённых местах — только наличные. Лучше иметь сомы (местная валюта)."
                 },
                 {
-                    "question": "Будет ли алкоголь в туре?",
-                    "answer": "Алкоголь не включён в программу, но вы можете приобрести его самостоятельно. В юрточных лагерях и гостевых домах обычно есть местные напитки."
+                    question: "Будет ли алкоголь в туре?",
+                    answer: "Алкоголь не включён в программу, но вы можете приобрести его самостоятельно. В юрточных лагерях и гостевых домах обычно есть местные напитки."
                 },
                 {
-                    "question": "Насколько стабилен интернет и мобильная связь?",
-                    "answer": "В городах и крупных населённых пунктах связь стабильная. В горах и отдалённых местах связь может быть слабой или отсутствовать. Wi-Fi доступен в отелях и гостевых домах."
+                    question: "Насколько стабилен интернет и мобильная связь?",
+                    answer: "В городах и крупных населённых пунктах связь стабильная. В горах и отдалённых местах связь может быть слабой или отсутствовать. Wi-Fi доступен в отелях и гостевых домах."
                 },
                 {
-                    "question": "Сколько багажа брать?",
-                    "answer": "Рекомендуем брать один чемодан или рюкзак среднего размера. Учитывайте, что будут переезды, поэтому лучше путешествовать налегке."
+                    question: "Сколько багажа брать?",
+                    answer: "Рекомендуем брать один чемодан или рюкзак среднего размера. Учитывайте, что будут переезды, поэтому лучше путешествовать налегке."
                 },
                 {
-                    "question": "Есть ли сопровождение на английском языке?",
-                    "answer": "Да, по запросу можем предоставить англоговорящего гида. Уточните при бронировании."
+                    question: "Есть ли сопровождение на английском языке?",
+                    answer: "Да, по запросу можем предоставить англоговорящего гида. Уточните при бронировании."
                 }
             ];
             
-            const importantInfoElement = document.getElementById('tourImportantInfo');
-            const faqElement = document.getElementById('tourFaq');
-            
-            if (importantInfoElement) {
-                importantInfoElement.value = JSON.stringify(defaultImportantInfo, null, 2);
-            }
-            if (faqElement) {
-                faqElement.value = JSON.stringify(defaultFaq, null, 2);
-            }
+            updateImportantInfoSummary();
+            updateFaqSummary();
         }
         
         document.getElementById('tourForm').addEventListener('submit', async (e) => {
@@ -1247,43 +1544,9 @@ function showTourForm(tourId = null) {
             // Используем данные из datesByMonthData (уже в правильном формате)
             const datesByMonth = datesByMonthData;
 
-            let importantInfo = {};
-            try {
-                const importantInfoElement = document.getElementById('tourImportantInfo');
-                if (importantInfoElement) {
-                    const importantInfoText = importantInfoElement.value.trim();
-                    if (importantInfoText) {
-                        importantInfo = JSON.parse(importantInfoText);
-                        // Проверяем, что это объект
-                        if (typeof importantInfo !== 'object' || Array.isArray(importantInfo)) {
-                            throw new Error('importantInfo должен быть объектом');
-                        }
-                    }
-                }
-            } catch (e) {
-                alert('Ошибка в формате важной информации. Проверьте JSON.\n\nПример правильного формата:\n{"included": ["Проживание", "Трансфер"], "notIncluded": ["Авиаперелет"], "payment": ["Предоплата 30%"]}');
-                console.error('Ошибка парсинга importantInfo:', e);
-                return;
-            }
-
-            let faq = [];
-            try {
-                const faqElement = document.getElementById('tourFaq');
-                if (faqElement) {
-                    const faqText = faqElement.value.trim();
-                    if (faqText) {
-                        faq = JSON.parse(faqText);
-                        // Проверяем, что это массив
-                        if (!Array.isArray(faq)) {
-                            throw new Error('faq должен быть массивом');
-                        }
-                    }
-                }
-            } catch (e) {
-                alert('Ошибка в формате FAQ. Проверьте JSON.\n\nПример правильного формата:\n[{"question": "Вопрос?", "answer": "Ответ"}]');
-                console.error('Ошибка парсинга faq:', e);
-                return;
-            }
+            // Используем данные из памяти (уже в правильном формате)
+            const importantInfo = importantInfoData;
+            const faq = faqData;
 
             // Создаем FormData для отправки файла
             const formData = new FormData();
