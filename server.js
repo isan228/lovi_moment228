@@ -72,6 +72,13 @@ app.use('/admin', require('./routes/admin')); // Также поддержива
 // Эти endpoints работают даже если БД недоступна (возвращают значения по умолчанию)
 app.get('/api/main-video', async (req, res) => {
   try {
+    // Отключаем кеширование для этого endpoint
+    res.set({
+      'Cache-Control': 'no-store, no-cache, must-revalidate, private',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+    
     const { Settings } = require('./models');
     const setting = await Settings.findOne({ where: { key: 'main_video' } });
     const videoPath = setting && setting.value ? setting.value : '/static/images/mainback3.mp4';
