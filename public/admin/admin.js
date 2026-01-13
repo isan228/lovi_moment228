@@ -568,6 +568,26 @@ function showTourForm(tourId = null) {
                         <button type="button" id="addPriceDayBtn" class="btn btn-primary" style="margin-top: 10px;">+ Добавить день</button>
                         <small style="color: #666; display: block; margin-top: 5px;">Укажите дни недели и цены для каждого дня</small>
                     </div>
+                    <div class="form-group">
+                        <label>Даты по месяцам</label>
+                        <button type="button" id="openDatesModalBtn" class="btn btn-primary" style="margin-bottom: 10px;">Управление датами</button>
+                        <div id="tourDatesSummary" style="color: #666; font-size: 14px; margin-top: 5px;">
+                            Даты не выбраны
+                        </div>
+                        <div id="datesModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; overflow-y: auto;">
+                            <div style="background: white; margin: 50px auto; padding: 20px; max-width: 800px; border-radius: 8px; position: relative;">
+                                <button type="button" id="closeDatesModalBtn" style="position: absolute; top: 10px; right: 10px; background: #f44336; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">✕</button>
+                                <h3 style="margin-top: 0;">Управление датами по месяцам</h3>
+                                <div id="datesModalContent">
+                                    <!-- Содержимое будет добавлено динамически -->
+                                </div>
+                                <div style="margin-top: 20px; text-align: right;">
+                                    <button type="button" id="saveDatesBtn" class="btn btn-success">Сохранить</button>
+                                    <button type="button" id="cancelDatesBtn" class="btn btn-primary">Отмена</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label>Вид тура</label>
