@@ -23,19 +23,26 @@ app.use(session({
 }));
 
 // Middleware для парсинга тела запроса
-// Пропускаем multipart/form-data ДО body-parser - их обрабатывает multer
+// Увеличиваем лимит для загрузки больших файлов (видео)
+// НЕ применяем к multipart/form-data - их обрабатывает multer
+const jsonParser = bodyParser.json({ limit: '200mb' });
+const urlencodedParser = bodyParser.urlencoded({ extended: true, limit: '200mb' });
+
 app.use((req, res, next) => {
   const contentType = req.headers['content-type'] || '';
   // Если это multipart/form-data, пропускаем мимо body-parser
   if (contentType.includes('multipart/form-data')) {
     return next();
   }
-  next();
+  // Для остальных запросов применяем body-parser
+  jsonParser(req, res, (err) => {
+    if (err) {
+      // Если JSON парсинг не удался, пробуем urlencoded
+      return urlencodedParser(req, res, next);
+    }
+    next();
+  });
 });
-
-// Увеличиваем лимит для загрузки больших файлов (видео)
-app.use(bodyParser.json({ limit: '200mb' }));
-app.use(bodyParser.urlencoded({ extended: true, limit: '200mb' }));
 
 // Настройка Nodemailer для отправки email
 const transporter = nodemailer.createTransport({
