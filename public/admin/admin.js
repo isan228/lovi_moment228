@@ -776,20 +776,37 @@ function showTourForm(tourId = null) {
             }
         }
         
-        // Обработчики для модального окна с ценами (используем делегирование событий)
-        // Привязываем обработчики к форме, чтобы они работали даже если элементы создаются динамически
-        const tourForm = document.getElementById('tourForm');
-        if (tourForm) {
-            // Обработчик для кнопки открытия модального окна
-            tourForm.addEventListener('click', (e) => {
-                if (e.target && e.target.id === 'openPricesModalBtn') {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log('Клик по кнопке открытия модального окна с ценами');
-                    openPricesModal();
+        // Функция для привязки обработчиков модального окна с ценами
+        function attachPricesModalHandlers() {
+            // Используем делегирование событий - привязываем к форме
+            const tourForm = document.getElementById('tourForm');
+            if (tourForm) {
+                // Удаляем старый обработчик, если есть
+                if (tourForm._pricesModalClickHandler) {
+                    tourForm.removeEventListener('click', tourForm._pricesModalClickHandler);
                 }
-            });
+                
+                // Создаем новый обработчик
+                const clickHandler = (e) => {
+                    if (e.target && e.target.id === 'openPricesModalBtn') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('Клик по кнопке открытия модального окна с ценами');
+                        openPricesModal();
+                        return false;
+                    }
+                };
+                
+                tourForm.addEventListener('click', clickHandler);
+                tourForm._pricesModalClickHandler = clickHandler; // Сохраняем для возможного удаления
+                console.log('Обработчик для кнопки openPricesModalBtn привязан к форме');
+            } else {
+                console.error('Форма tourForm не найдена при привязке обработчика цен');
+            }
         }
+        
+        // Привязываем обработчики сразу
+        attachPricesModalHandlers();
         
         // Обработчики для элементов модального окна (они создаются в HTML, поэтому можно привязать сразу)
         setTimeout(() => {
