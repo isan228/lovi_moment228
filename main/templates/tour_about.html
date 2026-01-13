@@ -57,7 +57,7 @@
                     <a href="#" id="tourBreadcrumb">Загрузка...</a><img src="/static/images/lil-arrow.png" alt="" style="visibility: hidden;">
                 </div>
 
-                <h1 class="big-kg" id="tourTitle">Загрузка...</h1>
+                <h1 class="big-kg" id="tourTitle" style="font-size: 66px;">Загрузка...</h1>
                 <h2 class="tour-subtitle" id="tourSubtitle" style="display: none;"></h2>
 
             </div>
@@ -67,24 +67,6 @@
             </div>
       </div>
   </header>
-  
-  <!-- Карусель фото сразу после главного фото -->
-  <section class="gallery-section" id="tourGallerySection">
-    <!-- Первый ряд -->
-    <div class="gallery-row first-row">
-      <div class="gallery-track" id="galleryTrack1">
-        <!-- Изображения будут загружены динамически -->
-      </div>
-    </div>
-  
-    <!-- Второй ряд -->
-    <div class="gallery-row second-row">
-      <div class="gallery-track" id="galleryTrack2">
-        <!-- Изображения будут загружены динамически -->
-      </div>
-    </div>
-  </section>
-  
   <section class="tour-details">
     <!-- Карточка с датами и ценами -->
     <div class="tour-dates-card" id="tourDatesCard">
@@ -106,7 +88,21 @@
       <p>Загрузка...</p>
     </div>
   </section>
+  <section class="gallery-section" id="tourGallerySection">
+    <!-- Первый ряд -->
+    <div class="gallery-row first-row">
+      <div class="gallery-track" id="galleryTrack1">
+        <!-- Изображения будут загружены динамически -->
+      </div>
+    </div>
   
+    <!-- Второй ряд -->
+    <div class="gallery-row second-row">
+      <div class="gallery-track" id="galleryTrack2">
+        <!-- Изображения будут загружены динамически -->
+      </div>
+    </div>
+  </section>
   <section class="program-section" id="prgmSect">
     <h2 class="program-section__title">Программа путевки</h2>
 
@@ -117,12 +113,12 @@
 
     <!-- Карусель -->
     <div class="program-carousel">
-      <button class="program-carousel__arrow prev"><img src="/static/images/arrowsLeft.png" alt=""></button>
 
       <div class="program-carousel__track" id="programCarouselTrack">
         <!-- Слайды программы будут загружены динамически -->
       </div>
 
+      <button class="program-carousel__arrow prev"><img src="/static/images/arrowsLeft.png" alt=""></button>
       <button class="program-carousel__arrow next"><img src="/static/images/strelki.png" alt=""></button>
     </div>
   </section>
