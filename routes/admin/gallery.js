@@ -26,21 +26,26 @@ const upload = multer({
   storage: storage,
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
   fileFilter: (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png|gif|webp|heic|heif/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    // HEIC может иметь разные MIME типы, поэтому проверяем и расширение, и MIME тип
-    const mimetype = allowedTypes.test(file.mimetype) || 
-                     file.mimetype === 'image/heic' || 
-                     file.mimetype === 'image/heif' ||
-                     file.mimetype.startsWith('image/');
+    const allowedExtensions = /\.(jpeg|jpg|png|gif|webp|heic|heif)$/i;
+    const extname = allowedExtensions.test(file.originalname);
     
-    if (mimetype && extname) {
-      return cb(null, true);
-    } else if (extname && file.mimetype.startsWith('image/')) {
-      // Разрешаем, если расширение правильное и это изображение
+    // Проверяем расширение файла
+    if (!extname) {
+      return cb(new Error('Разрешены только изображения (jpeg, jpg, png, gif, webp, heic, heif)'));
+    }
+    
+    // Проверяем MIME тип (более гибкая проверка)
+    const allowedMimeTypes = /^image\/(jpeg|jpg|png|gif|webp|heic|heif|x-heic|x-heif|quicktime)$/i;
+    // HEIC файлы могут иметь MIME тип 'image/heic', 'image/heif', 'image/x-heic', 'image/x-heif' или даже 'video/quicktime'
+    const mimetype = allowedMimeTypes.test(file.mimetype) || file.mimetype.startsWith('image/');
+    
+    if (mimetype) {
       return cb(null, true);
     } else {
-      cb(new Error('Разрешены только изображения (jpeg, jpg, png, gif, webp, heic, heif)'));
+      // Если расширение правильное, но MIME тип не распознан, все равно разрешаем
+      // (некоторые браузеры могут отправлять неправильный MIME тип для HEIC)
+      console.log('Предупреждение: MIME тип не распознан, но расширение правильное:', file.mimetype, file.originalname);
+      return cb(null, true);
     }
   }
 });
