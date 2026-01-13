@@ -9,7 +9,7 @@ const { requireAuth } = require('../../middleware/auth');
 // Настройка Multer для загрузки видео
 const videoStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadPath = path.join(__dirname, '../../static/images');
+    const uploadPath = path.join(__dirname, '../../public/static/images');
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true });
     }
@@ -134,10 +134,18 @@ router.put('/main_video', requireAuth, uploadVideo.single('video'), async (req, 
     // Удаляем старое видео, если оно существует
     const oldSetting = await Settings.findOne({ where: { key: 'main_video' } });
     if (oldSetting && oldSetting.value && oldSetting.value !== '/static/images/mainback3.mp4') {
-      const oldVideoPath = path.join(__dirname, '../../', oldSetting.value);
-      if (fs.existsSync(oldVideoPath)) {
+      // Путь может быть либо в public/static/images, либо в static/images (старый формат)
+      const oldVideoPathPublic = path.join(__dirname, '../../public', oldSetting.value);
+      const oldVideoPathStatic = path.join(__dirname, '../../', oldSetting.value);
+      if (fs.existsSync(oldVideoPathPublic)) {
         try {
-          fs.unlinkSync(oldVideoPath);
+          fs.unlinkSync(oldVideoPathPublic);
+        } catch (err) {
+          console.error('Ошибка при удалении старого видео:', err);
+        }
+      } else if (fs.existsSync(oldVideoPathStatic)) {
+        try {
+          fs.unlinkSync(oldVideoPathStatic);
         } catch (err) {
           console.error('Ошибка при удалении старого видео:', err);
         }
