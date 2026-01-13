@@ -1,12 +1,18 @@
 // Вспомогательная функция для fetch с credentials
 function apiFetch(url, options = {}) {
+    // Если body - FormData, не добавляем Content-Type (браузер установит его сам с boundary)
+    const isFormData = options.body instanceof FormData;
+    const headers = isFormData 
+        ? { ...options.headers } // Для FormData не добавляем Content-Type
+        : {
+            'Content-Type': 'application/json',
+            ...options.headers
+        };
+    
     return fetch(url, {
         ...options,
         credentials: 'include', // Всегда отправляем cookies
-        headers: {
-            'Content-Type': 'application/json',
-            ...options.headers
-        }
+        headers: headers
     });
 }
 
