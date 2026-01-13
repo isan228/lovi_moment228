@@ -859,31 +859,40 @@ function initCarousel() {
   }
   
   // клики по стрелкам
-  prevBtn.onclick = () => {
+  prevBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Клик по кнопке "Назад"');
     if (currentIndex > 0) {
       currentIndex--;
       scrollToIndex(currentIndex);
       restartAutoPlay(); // Перезапускаем автоматическое переключение
     }
-  };
+  });
   
-  nextBtn.onclick = () => {
+  nextBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Клик по кнопке "Вперед"');
     if (currentIndex < cards.length - 1) {
       currentIndex++;
       scrollToIndex(currentIndex);
       restartAutoPlay(); // Перезапускаем автоматическое переключение
     }
-  };
+  });
   
   // клики по точкам
-  dotsNav.onclick = (e) => {
+  dotsNav.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     const i = dots.indexOf(e.target);
     if (i !== -1) {
+      console.log('Клик по точке:', i);
       currentIndex = i;
       scrollToIndex(currentIndex);
       restartAutoPlay(); // Перезапускаем автоматическое переключение
     }
-  };
+  });
   
   // Останавливаем автоматическое переключение при наведении на карусель
   track.addEventListener('mouseenter', stopAutoPlay);
@@ -909,7 +918,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Загружаем галерею
   loadHomeGallery();
   
-  // Загружаем виды туров
+  // Загружаем виды туров (эта функция сама вызовет initCarousel после загрузки)
   loadTourTypes();
   
   // Периодически проверяем обновление видео (каждые 30 секунд)
@@ -917,62 +926,6 @@ document.addEventListener('DOMContentLoaded', () => {
   setInterval(() => {
     loadMainVideo();
   }, 30000); // Проверяем каждые 30 секунд
-
-  function scrollToIndex(index) {
-    const card       = cards[index];
-    const trackWidth = track.clientWidth;
-    const cardWidth  = card.offsetWidth;
-    const cardOffset = card.offsetLeft;
-
-    // хотим центрировать:
-    let scrollLeft = cardOffset - (trackWidth - cardWidth) / 2;
-
-    // clamp: не выходить за границы
-    const maxScroll = track.scrollWidth - trackWidth;
-    scrollLeft = Math.max(0, Math.min(scrollLeft, maxScroll));
-
-    track.scrollTo({ left: scrollLeft, behavior: 'smooth' });
-
-    // обновляем вид стрелок и точек
-    updateButtons();
-    updateDots();
-  }
-
-  function updateButtons() {
-    prevBtn.style.visibility = (currentIndex === 0) ? 'hidden' : 'visible';
-    nextBtn.style.visibility = (currentIndex === cards.length - 1) ? 'hidden' : 'visible';
-  }
-
-  function updateDots() {
-    dots.forEach(dot => dot.classList.remove('current-dot'));
-    dots[currentIndex].classList.add('current-dot');
-  }
-
-  // клики по стрелкам
-  prevBtn.addEventListener('click', () => {
-    if (currentIndex > 0) {
-      currentIndex--;
-      scrollToIndex(currentIndex);
-    }
-  });
-  nextBtn.addEventListener('click', () => {
-    if (currentIndex < cards.length - 1) {
-      currentIndex++;
-      scrollToIndex(currentIndex);
-    }
-  });
-
-  // клики по точкам
-  dotsNav.addEventListener('click', e => {
-    const i = dots.indexOf(e.target);
-    if (i !== -1) {
-      currentIndex = i;
-      scrollToIndex(currentIndex);
-    }
-  });
-
-  // первая инициализация
-  scrollToIndex(0);
 });
 
     // для бургера
