@@ -419,61 +419,80 @@ async function loadMainVideo() {
     if (currentBasePath !== basePath || !currentBasePath) {
       console.log('Обновляю видео:', currentBasePath || '(нет)', '->', basePath);
       
-      // Полностью очищаем video элемент
-      videoElement.innerHTML = '';
+      // Сохраняем родительский элемент и его атрибуты
+      const parent = videoElement.parentElement;
+      const className = videoElement.className;
+      const id = videoElement.id;
+      const style = videoElement.getAttribute('style');
+      
+      // Полностью удаляем старый video элемент
+      videoElement.remove();
+      
+      // Создаем новый video элемент с нуля
+      const newVideo = document.createElement('video');
+      newVideo.id = id;
+      newVideo.className = className;
+      if (style) newVideo.setAttribute('style', style);
+      newVideo.loop = true;
+      newVideo.autoplay = true;
+      newVideo.muted = true;
+      newVideo.playsInline = true;
+      newVideo.preload = 'auto';
       
       // Создаем новый source элемент
       const newSource = document.createElement('source');
       newSource.src = videoUrl;
       newSource.type = 'video/mp4';
-      videoElement.appendChild(newSource);
+      newVideo.appendChild(newSource);
       
-      // Убеждаемся, что все атрибуты установлены
-      videoElement.loop = true;
-      videoElement.autoplay = true;
-      videoElement.muted = true;
-      videoElement.playsInline = true;
-      videoElement.preload = 'auto';
+      // Вставляем новый video элемент на место старого
+      parent.appendChild(newVideo);
       
-      // Останавливаем текущее воспроизведение
-      videoElement.pause();
-      videoElement.currentTime = 0;
-      
-      // Перезагружаем видео с новым источником
-      videoElement.load();
+      console.log('Новый video элемент создан и вставлен');
       
       // Пытаемся воспроизвести после загрузки
       const playVideo = () => {
         console.log('Попытка воспроизвести видео');
-        videoElement.play().catch(err => {
+        newVideo.play().catch(err => {
           console.log('Автовоспроизведение заблокировано браузером:', err);
         });
       };
       
-      videoElement.addEventListener('loadeddata', () => {
+      newVideo.addEventListener('loadeddata', () => {
         console.log('Видео загружено (loadeddata)');
         playVideo();
       }, { once: true });
       
-      videoElement.addEventListener('canplay', () => {
+      newVideo.addEventListener('canplay', () => {
         console.log('Видео готово к воспроизведению (canplay)');
         playVideo();
       }, { once: true });
       
-      videoElement.addEventListener('loadedmetadata', () => {
-        console.log('Метаданные видео загружены (loadedmetadata)');
+      newVideo.addEventListener('canplaythrough', () => {
+        console.log('Видео готово к воспроизведению полностью (canplaythrough)');
         playVideo();
       }, { once: true });
       
-      videoElement.addEventListener('error', (e) => {
+      newVideo.addEventListener('loadedmetadata', () => {
+        console.log('Метаданные видео загружены (loadedmetadata)');
+      }, { once: true });
+      
+      newVideo.addEventListener('error', (e) => {
         console.error('Ошибка загрузки видео:', e);
-        console.error('Видео элемент:', videoElement);
+        console.error('Видео элемент:', newVideo);
         console.error('Source:', newSource);
         console.error('URL:', videoUrl);
+        console.error('Код ошибки:', newVideo.error ? newVideo.error.code : 'неизвестно');
+        console.error('Сообщение об ошибке:', newVideo.error ? newVideo.error.message : 'неизвестно');
       }, { once: true });
+      
+      // Принудительно загружаем видео
+      newVideo.load();
       
       // Также пытаемся воспроизвести через небольшую задержку
       setTimeout(playVideo, 500);
+      setTimeout(playVideo, 1000);
+      setTimeout(playVideo, 2000);
     } else {
       console.log('Путь видео не изменился, обновляю только timestamp для обхода кеша');
       // Если путь тот же, просто обновляем timestamp для обхода кеша
