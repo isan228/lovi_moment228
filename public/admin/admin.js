@@ -776,32 +776,34 @@ function showTourForm(tourId = null) {
             }
         }
         
-        // Обработчики для модального окна с ценами
+        // Обработчики для модального окна с ценами (используем делегирование событий)
+        // Привязываем обработчики к форме, чтобы они работали даже если элементы создаются динамически
+        const tourForm = document.getElementById('tourForm');
+        if (tourForm) {
+            // Обработчик для кнопки открытия модального окна
+            tourForm.addEventListener('click', (e) => {
+                if (e.target && e.target.id === 'openPricesModalBtn') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Клик по кнопке открытия модального окна с ценами');
+                    openPricesModal();
+                }
+            });
+        }
+        
+        // Обработчики для элементов модального окна (они создаются в HTML, поэтому можно привязать сразу)
         setTimeout(() => {
-            const openPricesModalBtn = document.getElementById('openPricesModalBtn');
             const closePricesModalBtn = document.getElementById('closePricesModalBtn');
             const savePricesBtn = document.getElementById('savePricesBtn');
             const cancelPricesBtn = document.getElementById('cancelPricesBtn');
             const pricesModal = document.getElementById('pricesModal');
             
             console.log('Инициализация обработчиков модального окна с ценами:', {
-                openPricesModalBtn: !!openPricesModalBtn,
                 closePricesModalBtn: !!closePricesModalBtn,
                 savePricesBtn: !!savePricesBtn,
                 cancelPricesBtn: !!cancelPricesBtn,
                 pricesModal: !!pricesModal
             });
-            
-            if (openPricesModalBtn) {
-                openPricesModalBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log('Клик по кнопке открытия модального окна с ценами');
-                    openPricesModal();
-                });
-            } else {
-                console.error('Кнопка openPricesModalBtn не найдена!');
-            }
             
             if (closePricesModalBtn) {
                 closePricesModalBtn.addEventListener('click', (e) => {
@@ -834,7 +836,7 @@ function showTourForm(tourId = null) {
                     }
                 });
             }
-        }, 100);
+        }, 200);
         
         // Месяцы для выбора
         const months = [
