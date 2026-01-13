@@ -801,58 +801,6 @@ function showTourForm(tourId = null) {
             }
         }, 100);
         
-        // Функция для добавления дня недели с ценой
-        function addPriceDay(day = '', price = '') {
-            const container = document.getElementById('tourPricesByDayContainer');
-            if (!container) return;
-            
-            const dayDiv = document.createElement('div');
-            dayDiv.className = 'form-group';
-            dayDiv.style.marginBottom = '10px';
-            dayDiv.style.padding = '10px';
-            dayDiv.style.border = '1px solid #ddd';
-            dayDiv.style.borderRadius = '4px';
-            dayDiv.style.backgroundColor = '#f9f9f9';
-            dayDiv.style.display = 'flex';
-            dayDiv.style.gap = '10px';
-            dayDiv.style.alignItems = 'center';
-            
-            const dayInput = document.createElement('input');
-            dayInput.type = 'text';
-            dayInput.placeholder = 'День недели (например: среда)';
-            dayInput.value = day;
-            dayInput.style.flex = '1';
-            dayInput.style.padding = '8px';
-            dayInput.style.border = '1px solid #ccc';
-            dayInput.style.borderRadius = '4px';
-            
-            const priceInput = document.createElement('input');
-            priceInput.type = 'number';
-            priceInput.placeholder = 'Цена';
-            priceInput.step = '0.01';
-            priceInput.value = price;
-            priceInput.style.width = '150px';
-            priceInput.style.padding = '8px';
-            priceInput.style.border = '1px solid #ccc';
-            priceInput.style.borderRadius = '4px';
-            
-            const removeBtn = document.createElement('button');
-            removeBtn.type = 'button';
-            removeBtn.textContent = 'Удалить';
-            removeBtn.className = 'btn btn-danger';
-            removeBtn.onclick = () => dayDiv.remove();
-            
-            dayDiv.appendChild(dayInput);
-            dayDiv.appendChild(priceInput);
-            dayDiv.appendChild(removeBtn);
-            container.appendChild(dayDiv);
-        }
-        
-        // Обработчик кнопки добавления дня
-        const addPriceDayBtn = document.getElementById('addPriceDayBtn');
-        if (addPriceDayBtn) {
-            addPriceDayBtn.addEventListener('click', () => addPriceDay());
-        }
         
         // Превью загруженного изображения
         const headerImageInput = document.getElementById('tourHeaderImage');
@@ -978,20 +926,8 @@ function showTourForm(tourId = null) {
                 }
             }
             
-            // Собираем цены по дням недели
-            const pricesByDay = [];
-            const pricesContainer = document.getElementById('tourPricesByDayContainer');
-            const priceRows = pricesContainer.querySelectorAll('div');
-            priceRows.forEach(row => {
-                const dayInput = row.querySelector('input[type="text"]');
-                const priceInput = row.querySelector('input[type="number"]');
-                if (dayInput && dayInput.value.trim() && priceInput && priceInput.value) {
-                    pricesByDay.push({
-                        day: dayInput.value.trim(),
-                        price: parseFloat(priceInput.value)
-                    });
-                }
-            });
+            // Используем данные из pricesByDayData (уже в правильном формате)
+            const pricesByDay = pricesByDayData;
             
             // Используем данные из datesByMonthData (уже в правильном формате)
             const datesByMonth = datesByMonthData;
