@@ -844,7 +844,10 @@ function initCarousel() {
     // Останавливаем предыдущий интервал, если он есть
     if (autoPlayInterval) {
       clearInterval(autoPlayInterval);
+      console.log('Остановлен предыдущий интервал автопереключения');
     }
+    
+    console.log('Запуск автоматического переключения карусели');
     
     // Запускаем автоматическое переключение каждые 4 секунды
     autoPlayInterval = setInterval(() => {
@@ -855,6 +858,7 @@ function initCarousel() {
         // Если достигли конца, возвращаемся к началу
         currentIndex = 0;
       }
+      console.log('Автоматическое переключение на индекс:', currentIndex, 'из', cards.length - 1);
       scrollToIndex(currentIndex);
     }, 4000); // 4 секунды
   }
