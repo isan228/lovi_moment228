@@ -45,19 +45,20 @@
                 <span class="nav-tour__lang">En</span>
             </div>
         </nav>
-      <div class="header-tour-about-kg">
+      <div class="header-tour-about-kg" id="tourHeader" style="background-image: url('/static/images/location.png');">
           <div class="tour-kol-butt">
                 <div class="long-arrow-kolsu">
                     <a href="{% url 'home' %}"><img src="/static/images/big-arrow.png" alt=""></a>
                 </div>
-                <div class="tour-gps-kolsu">
+                <div class="tour-gps-kolsu" id="breadcrumbs">
                     <a href="{% url 'home' %}">Гланая</a><img src="/static/images/lil-arrow.png" alt="">
                     <a href="{% url 'tour' %}">Туры</a><img src="/static/images/lil-arrow.png" alt="">
-                    <a href="{% url 'tour' %}">Кыргызстан</a><img src="/static/images/lil-arrow.png" alt="">
-                    <a href="#">Кел - Суу</a><img src="/static/images/lil-arrow.png" alt="" style="visibility: hidden;">
+                    <a href="{% url 'tour' %}" id="countryBreadcrumb">Кыргызстан</a><img src="/static/images/lil-arrow.png" alt="">
+                    <a href="#" id="tourBreadcrumb">Загрузка...</a><img src="/static/images/lil-arrow.png" alt="" style="visibility: hidden;">
                 </div>
 
-                <h1 class="big-kg">Кел - Суу</h1>
+                <h1 class="big-kg" id="tourTitle">Загрузка...</h1>
+                <h2 class="tour-subtitle" id="tourSubtitle" style="display: none;"></h2>
 
             </div>
             
@@ -68,107 +69,37 @@
   </header>
   <section class="tour-details">
     <!-- Карточка с датами и ценами -->
-    <div class="tour-dates-card">
-      <h3 class="tour-dates-card__title">Трехдневный тур</h3>
+    <div class="tour-dates-card" id="tourDatesCard">
+      <h3 class="tour-dates-card__title" id="tourDurationTitle">Загрузка...</h3>
       <h4 class="tour-dates-card__subtitle">Даты</h4>
 
-      <div class="tour-dates-card__prices">
-        <!-- по средам -->
-        <div class="tour-dates-card__column tour-dates-card__column--wed">
-          <div class="tour-dates-card__label">По средам</div>
-          <div class="tour-dates-card__price">8 990 сом</div>
-        </div>
-        <!-- по пятницам -->
-        <div class="tour-dates-card__column tour-dates-card__column--fri tour-dates-card__column--border">
-          <div class="tour-dates-card__label">По пятницам</div>
-          <div class="tour-dates-card__price">9 990 сом</div>
-        </div>
+      <div class="tour-dates-card__prices" id="tourPricesContainer">
+        <!-- Цены будут загружены динамически -->
       </div>
 
-
-      <div class="tour-dates-card__list">
-        <!-- Июнь -->
-        <div class="tour-dates-card__month">
-          <span class="tour-dates-card__month-name">Июнь</span>
-          <span class="tour-dates-card__day tour-dates-card__day--fri">20</span>,
-          <span class="tour-dates-card__day tour-dates-card__day--wed">25</span>,
-          <span class="tour-dates-card__day tour-dates-card__day--fri">27</span>
-        </div>
-
-        <!-- Июль -->
-        <div class="tour-dates-card__month">
-          <span class="tour-dates-card__month-name">Июль</span>
-          <span class="tour-dates-card__day tour-dates-card__day--fri">4</span>,
-          <span class="tour-dates-card__day tour-dates-card__day--wed">9</span>,
-          <span class="tour-dates-card__day tour-dates-card__day--fri">11</span>,
-          <span class="tour-dates-card__day tour-dates-card__day--wed">16</span>,
-          <span class="tour-dates-card__day tour-dates-card__day--fri">18</span>,
-          <span class="tour-dates-card__day tour-dates-card__day--wed">23</span>,
-          <span class="tour-dates-card__day tour-dates-card__day--fri">25</span>,
-          <span class="tour-dates-card__day tour-dates-card__day--wed">30</span>
-        </div>
-
-        <!-- Август -->
-        <div class="tour-dates-card__month">
-          <span class="tour-dates-card__month-name">Август</span>
-          <span class="tour-dates-card__day tour-dates-card__day--fri">1</span>,
-          <span class="tour-dates-card__day tour-dates-card__day--wed">6</span>,
-          <span class="tour-dates-card__day tour-dates-card__day--fri">8</span>,
-          <span class="tour-dates-card__day tour-dates-card__day--wed">13</span>,
-          <span class="tour-dates-card__day tour-dates-card__day--fri">15</span>,
-          <span class="tour-dates-card__day tour-dates-card__day--wed">20</span>,
-          <span class="tour-dates-card__day tour-dates-card__day--fri">22</span>,
-          <span class="tour-dates-card__day tour-dates-card__day--wed">27</span>,
-          <span class="tour-dates-card__day tour-dates-card__day--fri">29</span>
-        </div>
+      <div class="tour-dates-card__list" id="tourDatesList">
+        <!-- Даты будут загружены динамически -->
       </div>
 
     </div>
 
     <!-- Описание тура -->
-    <div class="tour-description">
-      <p>
-        Путешествие к озеру Кёл-Суу — это приключение для тех, кто мечтает увидеть по-настоящему дикую и нетронутую природу.
-        Скрытое среди скал и гор Тянь-Шаня, на границе с Китаем, озеро Кёл-Суу — одно из самых загадочных и живописных мест в Кыргызстане.
-        Его изумрудная вода появляется только летом, когда тают ледники, а сам путь к озеру пролегает через высокогорные долины, юрты кочевников и перевалы, где время будто остановилось.
-      </p>
-      <p>
-        Этот тур — идеальный вариант для любителей природы, фотоохотников, треккеров и всех, кто хочет почувствовать настоящую силу гор.
-        Вас ждёт ночёвка в юртах, езда по бездорожью, возможность прокатиться на лодке по узкому ущелью озера (если уровень воды позволяет),
-        а также полное погружение в атмосферу дикой природы.
-      </p>
+    <div class="tour-description" id="tourDescription">
+      <p>Загрузка...</p>
     </div>
   </section>
-  <section class="gallery-section">
+  <section class="gallery-section" id="tourGallerySection">
     <!-- Первый ряд -->
     <div class="gallery-row first-row">
-      <div class="gallery-track">
-        <img src="{% static 'images/Rectangle 1.png' %}" alt="img1">
-        <img src="{% static 'images/Rectangle 2.png' %}" alt="img2">
-        <img src="{% static 'images/Rectangle 3.png' %}" alt="img3">
-        <img src="{% static 'images/Rectangle 4.png' %}" alt="img4">
-        <img src="{% static 'images/Rectangle 4.png' %}" alt="img5">
-        <img src="{% static 'images/Rectangle 1.png' %}" alt="img1">
-        <img src="{% static 'images/Rectangle 2.png' %}" alt="img2">
-        <img src="{% static 'images/Rectangle 3.png' %}" alt="img3">
-        <img src="{% static 'images/Rectangle 4.png' %}" alt="img4">
-        <img src="{% static 'images/Rectangle 4.png' %}" alt="img5">
+      <div class="gallery-track" id="galleryTrack1">
+        <!-- Изображения будут загружены динамически -->
       </div>
     </div>
   
     <!-- Второй ряд -->
     <div class="gallery-row second-row">
-      <div class="gallery-track">
-        <img src="{% static 'images/Rectangle 5.png' %}" alt="img6">
-        <img src="{% static 'images/Rectangle 6.png' %}" alt="img7">
-        <img src="{% static 'images/Rectangle 7.png' %}" alt="img8">
-        <img src="{% static 'images/Rectangle 8.png' %}" alt="img9">
-        <img src="{% static 'images/Rectangle 4.png' %}" alt="img9">
-        <img src="{% static 'images/Rectangle 1.png' %}" alt="img1">
-        <img src="{% static 'images/Rectangle 2.png' %}" alt="img2">
-        <img src="{% static 'images/Rectangle 3.png' %}" alt="img3">
-        <img src="{% static 'images/Rectangle 4.png' %}" alt="img4">
-        <img src="{% static 'images/Rectangle 4.png' %}" alt="img5">
+      <div class="gallery-track" id="galleryTrack2">
+        <!-- Изображения будут загружены динамически -->
       </div>
     </div>
   </section>
@@ -176,70 +107,16 @@
     <h2 class="program-section__title">Программа путевки</h2>
 
     <!-- Навигация по дням -->
-    <div class="program-nav">
-      <button class="program-nav__day active" data-day="0">День 1</button>
-      <button class="program-nav__day" data-day="1">День 2</button>
-      <button class="program-nav__day" data-day="2">День 3</button>
+    <div class="program-nav" id="programNav">
+      <!-- Кнопки дней будут загружены динамически -->
     </div>
 
     <!-- Карусель -->
     <div class="program-carousel">
       <button class="program-carousel__arrow prev"><img src="/static/images/arrowsLeft.png" alt=""></button>
 
-      <div class="program-carousel__track">
-        <!-- Слайд 1 -->
-        <div class="program-carousel__slide" data-day="0">
-          <div class="program-carousel__media">
-            <!-- Левая колонка: высокое фото -->
-            <div class="media-col media-col--tall">
-              <img src="/static/images/fk1.png" alt="" class="media-col__img">
-            </div>
-            <!-- Правая колонка: два маленьких фото -->
-            <div class="media-col media-col--small">
-              <img src="/static/images/fk2.png" alt="" class="media-col__img">
-              <img src="/static/images/fk3.png" alt="" class="media-col__img">
-            </div>
-          </div>
-          <div class="program-carousel__text">
-            <p>Ваше путешествие начинается с прибытия в столицу Кыргызстана — город Бишкек, где вас встретит представитель нашей команды. При желании вы можете совершить небольшую обзорную прогулку по городу: прогуляться по центральной площади, заглянуть в местные сувенирные лавки и почувствовать атмосферу города у подножия гор. После этого вы отправитесь в живописную долину Чон-Кемин, расположенную примерно в 150 км от столицы. По прибытии вас ждёт уютный гостевой дом, домашний ужин и спокойный вечер на фоне горного пейзажа. Это отличное место, чтобы расслабиться после дороги и влиться в атмосферу Кыргызстана.</p>
-          </div>
-        </div>
-
-
-        <!-- Слайд 2 -->
-        <div class="program-carousel__slide" data-day="0">
-          <div class="program-carousel__media">
-            <!-- Левая колонка: высокое фото -->
-            <div class="media-col media-col--tall">
-              <img src="/static/images/day1-large.jpg" alt="" class="media-col__img">
-            </div>
-            <!-- Правая колонка: два маленьких фото -->
-            <div class="media-col media-col--small">
-              <img src="/static/images/day1-1.jpg" alt="" class="media-col__img">
-              <img src="/static/images/day1-2.jpg" alt="" class="media-col__img">
-            </div>
-          </div>
-          <div class="program-carousel__text">
-            <p>Ваше путешествие начинается с прибытия в столицу Кыргызстана — город Бишкек, где вас встретит представитель нашей команды. При желании вы можете совершить небольшую обзорную прогулку по городу: прогуляться по центральной площади, заглянуть в местные сувенирные лавки и почувствовать атмосферу города у подножия гор. После этого вы отправитесь в живописную долину Чон-Кемин, расположенную примерно в 150 км от столицы. По прибытии вас ждёт уютный гостевой дом, домашний ужин и спокойный вечер на фоне горного пейзажа. Это отличное место, чтобы расслабиться после дороги и влиться в атмосферу Кыргызстана.</p>
-          </div>
-        </div>
-        <!-- Слайд 3 -->
-        <div class="program-carousel__slide" data-day="0">
-          <div class="program-carousel__media">
-            <!-- Левая колонка: высокое фото -->
-            <div class="media-col media-col--tall">
-              <img src="/static/images/day1-large.jpg" alt="" class="media-col__img">
-            </div>
-            <!-- Правая колонка: два маленьких фото -->
-            <div class="media-col media-col--small">
-              <img src="/static/images/day1-1.jpg" alt="" class="media-col__img">
-              <img src="/static/images/day1-2.jpg" alt="" class="media-col__img">
-            </div>
-          </div>
-          <div class="program-carousel__text">
-            <p>Ваше путешествие начинается с прибытия в столицу Кыргызстана — город Бишкек, где вас встретит представитель нашей команды. При желании вы можете совершить небольшую обзорную прогулку по городу: прогуляться по центральной площади, заглянуть в местные сувенирные лавки и почувствовать атмосферу города у подножия гор. После этого вы отправитесь в живописную долину Чон-Кемин, расположенную примерно в 150 км от столицы. По прибытии вас ждёт уютный гостевой дом, домашний ужин и спокойный вечер на фоне горного пейзажа. Это отличное место, чтобы расслабиться после дороги и влиться в атмосферу Кыргызстана.</p>
-          </div>
-        </div>
+      <div class="program-carousel__track" id="programCarouselTrack">
+        <!-- Слайды программы будут загружены динамически -->
       </div>
 
       <button class="program-carousel__arrow next"><img src="/static/images/strelki.png" alt=""></button>
@@ -829,28 +706,500 @@
   // форма ============================================================
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('applicationForm');
-  form.addEventListener('submit', e => {
-    e.preventDefault();
-    const data = new FormData(form);
+  if (form) {
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      const data = new FormData(form);
 
-    fetch(form.action, {
-      method: form.method,
-      body: data,
-      credentials: 'same-origin'
-    })
-    .then(res => res.json())
-    .then(json => {
-      if (json.status === 'ok') {
-        alert('Вы записались на тур');
-        form.reset();
-      } else {
-        alert('Ошибка: ' + (json.error || 'неизвестная'));
+      fetch(form.action, {
+        method: form.method,
+        body: data,
+        credentials: 'same-origin'
+      })
+      .then(res => res.json())
+      .then(json => {
+        if (json.status === 'ok') {
+          alert('Вы записались на тур');
+          form.reset();
+        } else {
+          alert('Ошибка: ' + (json.error || 'неизвестная'));
+        }
+      })
+      .catch(() => {
+        alert('Не удалось отправить заявку. Попробуйте позже.');
+      });
+    });
+  }
+});
+
+// ==============================================================
+// Загрузка данных тура по slug
+// ==============================================================
+async function loadTour() {
+  try {
+    // Получаем slug из URL
+    const path = window.location.pathname;
+    const slug = path.split('/').filter(p => p).pop(); // последний сегмент пути
+    
+    console.log('Загрузка тура по slug:', slug);
+    
+    const response = await fetch(`/api/tours/${slug}`);
+    if (!response.ok) {
+      throw new Error('Тур не найден');
+    }
+    
+    const tour = await response.json();
+    console.log('Тур загружен:', tour);
+    
+    // Обновляем header
+    updateTourHeader(tour);
+    
+    // Обновляем карточку с датами и ценами
+    updateTourDatesCard(tour);
+    
+    // Обновляем описание
+    updateTourDescription(tour);
+    
+    // Обновляем галерею
+    updateTourGallery(tour);
+    
+    // Обновляем программу
+    updateTourProgram(tour);
+    
+    // Обновляем важную информацию и FAQ (если уже есть код, он будет работать)
+    updateImportantInfoAndFAQ(tour);
+    
+  } catch (error) {
+    console.error('Ошибка при загрузке тура:', error);
+    document.getElementById('tourTitle').textContent = 'Тур не найден';
+  }
+}
+
+// Обновление header
+function updateTourHeader(tour) {
+  const header = document.getElementById('tourHeader');
+  const title = document.getElementById('tourTitle');
+  const subtitle = document.getElementById('tourSubtitle');
+  const countryBreadcrumb = document.getElementById('countryBreadcrumb');
+  const tourBreadcrumb = document.getElementById('tourBreadcrumb');
+  
+  if (tour.headerImage) {
+    header.style.backgroundImage = `url('${tour.headerImage}')`;
+  }
+  
+  if (title) title.textContent = tour.title || 'Тур';
+  if (subtitle && tour.subtitle) {
+    subtitle.textContent = tour.subtitle;
+    subtitle.style.display = 'block';
+  }
+  
+  if (countryBreadcrumb && tour.country) {
+    countryBreadcrumb.textContent = tour.country;
+  }
+  
+  if (tourBreadcrumb) {
+    tourBreadcrumb.textContent = tour.title || 'Тур';
+  }
+  
+  // Обновляем title страницы
+  document.title = tour.title || 'О туре';
+}
+
+// Обновление карточки с датами и ценами
+function updateTourDatesCard(tour) {
+  const durationTitle = document.getElementById('tourDurationTitle');
+  const pricesContainer = document.getElementById('tourPricesContainer');
+  const datesList = document.getElementById('tourDatesList');
+  
+  // Заголовок длительности
+  if (durationTitle && tour.daysCount) {
+    const daysText = tour.daysCount === 1 ? 'Однодневный тур' :
+                     tour.daysCount === 2 ? 'Двухдневный тур' :
+                     tour.daysCount === 3 ? 'Трехдневный тур' :
+                     tour.daysCount === 4 ? 'Четырехдневный тур' :
+                     tour.daysCount === 5 ? 'Пятидневный тур' :
+                     `${tour.daysCount}-дневный тур`;
+    durationTitle.textContent = daysText;
+  }
+  
+  // Цены по дням недели
+  if (pricesContainer) {
+    pricesContainer.innerHTML = '';
+    
+    if (tour.pricesByDay && Array.isArray(tour.pricesByDay) && tour.pricesByDay.length > 0) {
+      const dayNames = {
+        'monday': 'Понедельник',
+        'tuesday': 'Вторник',
+        'wednesday': 'Среда',
+        'thursday': 'Четверг',
+        'friday': 'Пятница',
+        'saturday': 'Суббота',
+        'sunday': 'Воскресенье'
+      };
+      
+      const dayClasses = {
+        'monday': '',
+        'tuesday': '',
+        'wednesday': 'tour-dates-card__column--wed',
+        'thursday': '',
+        'friday': 'tour-dates-card__column--fri',
+        'saturday': '',
+        'sunday': ''
+      };
+      
+      tour.pricesByDay.forEach((priceDay, index) => {
+        const column = document.createElement('div');
+        column.className = `tour-dates-card__column ${dayClasses[priceDay.day] || ''} ${index > 0 ? 'tour-dates-card__column--border' : ''}`;
+        
+        const label = document.createElement('div');
+        label.className = 'tour-dates-card__label';
+        label.textContent = dayNames[priceDay.day] || `По ${priceDay.day}`;
+        
+        const price = document.createElement('div');
+        price.className = 'tour-dates-card__price';
+        price.textContent = `${parseInt(priceDay.price).toLocaleString('ru-RU')} сом`;
+        
+        column.appendChild(label);
+        column.appendChild(price);
+        pricesContainer.appendChild(column);
+      });
+    } else if (tour.price) {
+      // Если нет pricesByDay, показываем общую цену
+      const column = document.createElement('div');
+      column.className = 'tour-dates-card__column';
+      
+      const label = document.createElement('div');
+      label.className = 'tour-dates-card__label';
+      label.textContent = 'Цена';
+      
+      const price = document.createElement('div');
+      price.className = 'tour-dates-card__price';
+      price.textContent = `${parseInt(tour.price).toLocaleString('ru-RU')} сом`;
+      
+      column.appendChild(label);
+      column.appendChild(price);
+      pricesContainer.appendChild(column);
+    }
+  }
+  
+  // Даты по месяцам
+  if (datesList) {
+    datesList.innerHTML = '';
+    
+    if (tour.datesByMonth && Array.isArray(tour.datesByMonth) && tour.datesByMonth.length > 0) {
+      const monthNames = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 
+                          'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+      
+      tour.datesByMonth.forEach(monthData => {
+        if (monthData.days && monthData.days.length > 0) {
+          const monthDiv = document.createElement('div');
+          monthDiv.className = 'tour-dates-card__month';
+          
+          const monthName = document.createElement('span');
+          monthName.className = 'tour-dates-card__month-name';
+          monthName.textContent = monthNames[monthData.month - 1] || `Месяц ${monthData.month}`;
+          monthDiv.appendChild(monthName);
+          
+          monthData.days.forEach((day, index) => {
+            const daySpan = document.createElement('span');
+            daySpan.className = `tour-dates-card__day ${day.dayOfWeek === 'wednesday' ? 'tour-dates-card__day--wed' : ''} ${day.dayOfWeek === 'friday' ? 'tour-dates-card__day--fri' : ''}`;
+            daySpan.textContent = day.day;
+            monthDiv.appendChild(daySpan);
+            
+            if (index < monthData.days.length - 1) {
+              monthDiv.appendChild(document.createTextNode(', '));
+            }
+          });
+          
+          datesList.appendChild(monthDiv);
+        }
+      });
+    }
+  }
+}
+
+// Обновление описания
+function updateTourDescription(tour) {
+  const descriptionDiv = document.getElementById('tourDescription');
+  if (descriptionDiv && tour.description) {
+    // Разбиваем описание на параграфы по переносам строк
+    const paragraphs = tour.description.split('\n').filter(p => p.trim());
+    descriptionDiv.innerHTML = '';
+    
+    paragraphs.forEach(para => {
+      const p = document.createElement('p');
+      p.textContent = para.trim();
+      descriptionDiv.appendChild(p);
+    });
+  }
+}
+
+// Обновление галереи
+function updateTourGallery(tour) {
+  const track1 = document.getElementById('galleryTrack1');
+  const track2 = document.getElementById('galleryTrack2');
+  
+  if (!track1 || !track2) return;
+  
+  const images = tour.images || [];
+  
+  if (images.length === 0) {
+    // Если нет изображений, скрываем галерею
+    const gallerySection = document.getElementById('tourGallerySection');
+    if (gallerySection) gallerySection.style.display = 'none';
+    return;
+  }
+  
+  // Разделяем изображения на два ряда
+  const firstRowImages = images.slice(0, Math.ceil(images.length / 2));
+  const secondRowImages = images.slice(Math.ceil(images.length / 2));
+  
+  // Заполняем первый ряд (с дублированием для бесконечной прокрутки)
+  track1.innerHTML = '';
+  [...firstRowImages, ...firstRowImages].forEach(img => {
+    const imgEl = document.createElement('img');
+    imgEl.src = img.imagePath || img;
+    imgEl.alt = tour.title || 'Тур';
+    track1.appendChild(imgEl);
+  });
+  
+  // Заполняем второй ряд (с дублированием для бесконечной прокрутки)
+  track2.innerHTML = '';
+  [...secondRowImages, ...secondRowImages].forEach(img => {
+    const imgEl = document.createElement('img');
+    imgEl.src = img.imagePath || img;
+    imgEl.alt = tour.title || 'Тур';
+    track2.appendChild(imgEl);
+  });
+}
+
+// Обновление программы
+function updateTourProgram(tour) {
+  const programNav = document.getElementById('programNav');
+  const programTrack = document.getElementById('programCarouselTrack');
+  
+  if (!programNav || !programTrack) return;
+  
+  const program = tour.program || [];
+  
+  if (program.length === 0) {
+    // Если нет программы, скрываем секцию
+    const programSection = document.getElementById('prgmSect');
+    if (programSection) programSection.style.display = 'none';
+    return;
+  }
+  
+  // Очищаем навигацию и трек
+  programNav.innerHTML = '';
+  programTrack.innerHTML = '';
+  
+  // Создаем кнопки навигации по дням
+  program.forEach((day, dayIndex) => {
+    const dayBtn = document.createElement('button');
+    dayBtn.className = 'program-nav__day';
+    if (dayIndex === 0) dayBtn.classList.add('active');
+    dayBtn.setAttribute('data-day', dayIndex);
+    dayBtn.textContent = `День ${dayIndex + 1}`;
+    programNav.appendChild(dayBtn);
+  });
+  
+  // Создаем слайды программы
+  program.forEach((day, dayIndex) => {
+    if (day.items && Array.isArray(day.items)) {
+      day.items.forEach((item, itemIndex) => {
+        const slide = document.createElement('div');
+        slide.className = 'program-carousel__slide';
+        if (dayIndex === 0 && itemIndex === 0) slide.classList.add('active');
+        slide.setAttribute('data-day', dayIndex);
+        
+        // Медиа контент
+        const media = document.createElement('div');
+        media.className = 'program-carousel__media';
+        
+        // Левая колонка: высокое фото
+        const tallCol = document.createElement('div');
+        tallCol.className = 'media-col media-col--tall';
+        const tallImg = document.createElement('img');
+        tallImg.className = 'media-col__img';
+        tallImg.src = item.images && item.images[0] ? item.images[0] : '/static/images/fk1.png';
+        tallImg.alt = '';
+        tallCol.appendChild(tallImg);
+        media.appendChild(tallCol);
+        
+        // Правая колонка: два маленьких фото
+        const smallCol = document.createElement('div');
+        smallCol.className = 'media-col media-col--small';
+        
+        const smallImg1 = document.createElement('img');
+        smallImg1.className = 'media-col__img';
+        smallImg1.src = item.images && item.images[1] ? item.images[1] : '/static/images/fk2.png';
+        smallImg1.alt = '';
+        smallCol.appendChild(smallImg1);
+        
+        const smallImg2 = document.createElement('img');
+        smallImg2.className = 'media-col__img';
+        smallImg2.src = item.images && item.images[2] ? item.images[2] : '/static/images/fk3.png';
+        smallImg2.alt = '';
+        smallCol.appendChild(smallImg2);
+        
+        media.appendChild(smallCol);
+        slide.appendChild(media);
+        
+        // Текст
+        const text = document.createElement('div');
+        text.className = 'program-carousel__text';
+        const p = document.createElement('p');
+        p.textContent = item.description || item.text || '';
+        text.appendChild(p);
+        slide.appendChild(text);
+        
+        programTrack.appendChild(slide);
+      });
+    }
+  });
+  
+  // Инициализируем карусель программы после загрузки
+  setTimeout(() => {
+    initProgramCarousel();
+  }, 100);
+}
+
+// Инициализация карусели программы
+function initProgramCarousel() {
+  const days = Array.from(document.querySelectorAll('.program-nav__day'));
+  const slides = Array.from(document.querySelectorAll('.program-carousel__slide'));
+  const prev = document.querySelector('.program-carousel__arrow.prev');
+  const next = document.querySelector('.program-carousel__arrow.next');
+  
+  if (!days.length || !slides.length || !prev || !next) return;
+  
+  let current = 0;
+  
+  function update() {
+    days.forEach((btn, i) => {
+      const dayIndex = parseInt(btn.getAttribute('data-day'));
+      const daySlides = slides.filter(s => parseInt(s.getAttribute('data-day')) === dayIndex);
+      const isActive = daySlides.some(s => s.classList.contains('active'));
+      btn.classList.toggle('active', isActive);
+    });
+  }
+  
+  days.forEach((btn, i) => {
+    btn.addEventListener('click', () => {
+      const dayIndex = parseInt(btn.getAttribute('data-day'));
+      const daySlides = slides.filter(s => parseInt(s.getAttribute('data-day')) === dayIndex);
+      if (daySlides.length > 0) {
+        slides.forEach(s => s.classList.remove('active'));
+        daySlides[0].classList.add('active');
+        current = slides.indexOf(daySlides[0]);
+        update();
       }
-    })
-    .catch(() => {
-      alert('Не удалось отправить заявку. Попробуйте позже.');
     });
   });
+  
+  prev.addEventListener('click', () => {
+    current = (current - 1 + slides.length) % slides.length;
+    slides.forEach(s => s.classList.remove('active'));
+    slides[current].classList.add('active');
+    update();
+  });
+  
+  next.addEventListener('click', () => {
+    current = (current + 1) % slides.length;
+    slides.forEach(s => s.classList.remove('active'));
+    slides[current].classList.add('active');
+    update();
+  });
+  
+  update();
+}
+
+// Обновление важной информации и FAQ
+function updateImportantInfoAndFAQ(tour) {
+  // Важная информация
+  const importantInfoAccordion = document.getElementById('importantInfoAccordion');
+  if (importantInfoAccordion) {
+    importantInfoAccordion.innerHTML = '';
+    
+    if (tour.importantInfo && typeof tour.importantInfo === 'object') {
+      Object.keys(tour.importantInfo).forEach(key => {
+        const item = document.createElement('div');
+        item.className = 'accordion__item';
+        
+        const header = document.createElement('button');
+        header.className = 'accordion__header';
+        header.innerHTML = `<span>${key}</span><span class="accordion__icon">+</span>`;
+        
+        const content = document.createElement('div');
+        content.className = 'accordion__content';
+        const p = document.createElement('p');
+        p.textContent = tour.importantInfo[key];
+        content.appendChild(p);
+        
+        item.appendChild(header);
+        item.appendChild(content);
+        importantInfoAccordion.appendChild(item);
+      });
+    }
+  }
+  
+  // FAQ
+  const faqAccordion = document.getElementById('faqAccordion');
+  if (faqAccordion) {
+    faqAccordion.innerHTML = '';
+    
+    if (tour.faq && Array.isArray(tour.faq)) {
+      tour.faq.forEach(faqItem => {
+        const item = document.createElement('div');
+        item.className = 'accordion__item';
+        
+        const header = document.createElement('button');
+        header.className = 'accordion__header';
+        header.innerHTML = `<span>${faqItem.question || ''}</span><span class="accordion__icon">+</span>`;
+        
+        const content = document.createElement('div');
+        content.className = 'accordion__content';
+        const p = document.createElement('p');
+        p.textContent = faqItem.answer || '';
+        content.appendChild(p);
+        
+        item.appendChild(header);
+        item.appendChild(content);
+        faqAccordion.appendChild(item);
+      });
+    }
+  }
+  
+  // Инициализируем аккордеон после загрузки
+  setTimeout(() => {
+    initAccordion();
+  }, 100);
+}
+
+// Инициализация аккордеона
+function initAccordion() {
+  const items = document.querySelectorAll('.accordion__item');
+  
+  items.forEach(item => {
+    const header = item.querySelector('.accordion__header');
+    if (header) {
+      header.addEventListener('click', () => {
+        item.classList.toggle('open');
+        
+        const content = item.querySelector('.accordion__content');
+        if (item.classList.contains('open')) {
+          content.style.maxHeight = content.scrollHeight + 'px';
+        } else {
+          content.style.maxHeight = null;
+        }
+      });
+    }
+  });
+}
+
+// Загружаем тур при загрузке страницы
+document.addEventListener('DOMContentLoaded', () => {
+  loadTour();
 });
   </script>
 
