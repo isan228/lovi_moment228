@@ -1065,14 +1065,15 @@ async function loadSettings() {
             apiFetch('/api/admin/settings/stats/all')
         ]);
         
-        if (!videoResponse.ok) {
-            console.error('Ошибка при загрузке видео:', videoResponse.status);
-        }
-        
         const setting = await videoResponse.json();
         const stats = await statsResponse.json();
         
         console.log('Загруженные настройки видео:', setting);
+        console.log('Значение видео:', setting.value);
+        
+        // Проверяем, что setting существует и имеет значение
+        const videoValue = setting && setting.value ? setting.value : null;
+        const hasCustomVideo = videoValue && videoValue !== '/static/images/mainback3.mp4';
         
         const content = document.getElementById('settingsContent');
         content.innerHTML = `
@@ -1087,11 +1088,12 @@ async function loadSettings() {
                             <small style="color: #666; display: block; margin-top: 5px;">Формат: MP4, WEBM, OGG</small>
                             <div id="videoPreview" style="margin-top: 10px;"></div>
                         </div>
-                        ${setting.value ? `
+                        ${hasCustomVideo ? `
                             <div class="form-group" style="margin-top: 15px;">
                                 <label>Текущее видео:</label>
+                                <p style="color: #666; margin-bottom: 5px; font-size: 12px;">Путь: ${videoValue}</p>
                                 <video controls style="max-width: 100%; max-height: 300px; border-radius: 8px; margin-top: 10px;">
-                                    <source src="${setting.value}" type="video/mp4">
+                                    <source src="${videoValue}" type="video/mp4">
                                     Ваш браузер не поддерживает видео.
                                 </video>
                                 <button type="button" id="deleteVideoBtn" class="btn btn-danger" style="margin-top: 10px;">Удалить текущее видео</button>
@@ -1099,6 +1101,7 @@ async function loadSettings() {
                         ` : `
                             <div class="form-group" style="margin-top: 15px;">
                                 <p style="color: #666;">Используется видео по умолчанию: /static/images/mainback3.mp4</p>
+                                ${videoValue ? `<p style="color: #999; font-size: 12px;">Текущее значение в БД: ${videoValue}</p>` : ''}
                             </div>
                         `}
                         <button type="submit" class="btn btn-success">Сохранить новое видео</button>
