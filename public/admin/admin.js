@@ -604,6 +604,133 @@ function showTourForm(tourId = null) {
         
         document.getElementById('toursList').innerHTML = form;
         
+        // Данные для дат по месяцам (хранятся в памяти)
+        let datesByMonthData = [];
+        
+        // Месяцы для выбора
+        const months = [
+            { name: 'Январь', num: 1 },
+            { name: 'Февраль', num: 2 },
+            { name: 'Март', num: 3 },
+            { name: 'Апрель', num: 4 },
+            { name: 'Май', num: 5 },
+            { name: 'Июнь', num: 6 },
+            { name: 'Июль', num: 7 },
+            { name: 'Август', num: 8 },
+            { name: 'Сентябрь', num: 9 },
+            { name: 'Октябрь', num: 10 },
+            { name: 'Ноябрь', num: 11 },
+            { name: 'Декабрь', num: 12 }
+        ];
+        
+        // Функция для открытия модального окна с датами
+        function openDatesModal() {
+            const modal = document.getElementById('datesModal');
+            const content = document.getElementById('datesModalContent');
+            
+            // Генерируем интерфейс для каждого месяца
+            content.innerHTML = months.map(month => {
+                const monthData = datesByMonthData.find(m => m.month === month.name) || { month: month.name, days: [] };
+                const selectedDays = monthData.days || [];
+                
+                // Создаем чекбоксы для дней 1-31
+                const dayCheckboxes = Array.from({ length: 31 }, (_, i) => {
+                    const day = i + 1;
+                    const isChecked = selectedDays.includes(day);
+                    return `
+                        <label style="display: inline-block; margin: 5px; padding: 5px 10px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; ${isChecked ? 'background: #e3f2fd;' : ''}">
+                            <input type="checkbox" data-month="${month.name}" data-day="${day}" ${isChecked ? 'checked' : ''} style="margin-right: 5px;">
+                            ${day}
+                        </label>
+                    `;
+                }).join('');
+                
+                return `
+                    <div style="margin-bottom: 30px; padding: 15px; border: 1px solid #ddd; border-radius: 8px;">
+                        <h4 style="margin-top: 0; margin-bottom: 15px;">${month.name}</h4>
+                        <div style="display: flex; flex-wrap: wrap;">
+                            ${dayCheckboxes}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            modal.style.display = 'block';
+        }
+        
+        // Функция для закрытия модального окна
+        function closeDatesModal() {
+            document.getElementById('datesModal').style.display = 'none';
+        }
+        
+        // Функция для сохранения дат
+        function saveDates() {
+            const checkboxes = document.querySelectorAll('#datesModalContent input[type="checkbox"]:checked');
+            const datesByMonth = {};
+            
+            checkboxes.forEach(checkbox => {
+                const month = checkbox.getAttribute('data-month');
+                const day = parseInt(checkbox.getAttribute('data-day'));
+                
+                if (!datesByMonth[month]) {
+                    datesByMonth[month] = [];
+                }
+                datesByMonth[month].push(day);
+            });
+            
+            // Преобразуем в нужный формат
+            datesByMonthData = Object.keys(datesByMonth).map(month => ({
+                month: month,
+                days: datesByMonth[month].sort((a, b) => a - b)
+            }));
+            
+            // Обновляем сводку
+            updateDatesSummary();
+            closeDatesModal();
+        }
+        
+        // Функция для обновления сводки дат
+        function updateDatesSummary() {
+            const summary = document.getElementById('tourDatesSummary');
+            if (datesByMonthData.length === 0) {
+                summary.textContent = 'Даты не выбраны';
+                summary.style.color = '#666';
+            } else {
+                const summaryText = datesByMonthData.map(m => 
+                    `${m.month}: ${m.days.join(', ')}`
+                ).join('; ');
+                summary.textContent = summaryText;
+                summary.style.color = '#333';
+            }
+        }
+        
+        // Обработчики для модального окна
+        const openDatesModalBtn = document.getElementById('openDatesModalBtn');
+        const closeDatesModalBtn = document.getElementById('closeDatesModalBtn');
+        const saveDatesBtn = document.getElementById('saveDatesBtn');
+        const cancelDatesBtn = document.getElementById('cancelDatesBtn');
+        const datesModal = document.getElementById('datesModal');
+        
+        if (openDatesModalBtn) {
+            openDatesModalBtn.addEventListener('click', openDatesModal);
+        }
+        if (closeDatesModalBtn) {
+            closeDatesModalBtn.addEventListener('click', closeDatesModal);
+        }
+        if (saveDatesBtn) {
+            saveDatesBtn.addEventListener('click', saveDates);
+        }
+        if (cancelDatesBtn) {
+            cancelDatesBtn.addEventListener('click', closeDatesModal);
+        }
+        if (datesModal) {
+            datesModal.addEventListener('click', (e) => {
+                if (e.target === datesModal) {
+                    closeDatesModal();
+                }
+            });
+        }
+        
         // Функция для добавления дня недели с ценой
         function addPriceDay(day = '', price = '') {
             const container = document.getElementById('tourPricesByDayContainer');
@@ -742,7 +869,11 @@ function showTourForm(tourId = null) {
                     document.getElementById('tourPrice').value = data.price || '';
                     document.getElementById('tourTypeId').value = data.tourTypeId || '';
                     document.getElementById('tourIsActive').checked = data.isActive;
-                    document.getElementById('tourDatesByMonth').value = data.datesByMonth ? JSON.stringify(data.datesByMonth, null, 2) : '';
+                    
+                    // Загружаем даты по месяцам
+                    datesByMonthData = data.datesByMonth && Array.isArray(data.datesByMonth) ? data.datesByMonth : [];
+                    updateDatesSummary();
+                    
                     document.getElementById('tourImportantInfo').value = data.importantInfo ? JSON.stringify(data.importantInfo, null, 2) : '';
                     document.getElementById('tourFaq').value = data.faq ? JSON.stringify(data.faq, null, 2) : '';
                     
@@ -798,22 +929,8 @@ function showTourForm(tourId = null) {
                 }
             });
             
-            // Парсим JSON поля
-            let datesByMonth = [];
-            try {
-                const datesByMonthText = document.getElementById('tourDatesByMonth').value.trim();
-                if (datesByMonthText) {
-                    datesByMonth = JSON.parse(datesByMonthText);
-                    // Проверяем, что это массив
-                    if (!Array.isArray(datesByMonth)) {
-                        throw new Error('datesByMonth должен быть массивом');
-                    }
-                }
-            } catch (e) {
-                alert('Ошибка в формате дат по месяцам. Проверьте JSON.\n\nПример правильного формата:\n[{"month": "Июнь", "days": [20, 25, 27]}, {"month": "Июль", "days": [4, 9, 11]}]');
-                console.error('Ошибка парсинга datesByMonth:', e);
-                return;
-            }
+            // Используем данные из datesByMonthData (уже в правильном формате)
+            const datesByMonth = datesByMonthData;
 
             let importantInfo = {};
             try {
