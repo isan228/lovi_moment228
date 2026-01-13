@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const session = require('express-session');
 const path = require('path');
 const nodemailer = require('nodemailer');
+const multer = require('multer');
 const sequelize = require('./config/database');
 
 const app = express();
@@ -207,8 +208,11 @@ app.get('/api/stats', async (req, res) => {
   }
 });
 
+// Multer для парсинга FormData (без сохранения файлов)
+const upload = multer();
+
 // Обработка формы заявки на тур
-app.post('/submit-application', async (req, res) => {
+app.post('/submit-application', upload.none(), async (req, res) => {
   try {
     const { name, phone, email, consent, tourId, tourTitle } = req.body;
 
