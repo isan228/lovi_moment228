@@ -249,6 +249,20 @@ app.use((req, res, next) => {
   staticMiddleware(req, res, next);
 });
 
+// Маршрут для динамических страниц туров /tour-about/:slug
+// Отдаем один и тот же HTML файл, JavaScript загрузит данные по slug
+app.get('/tour-about/:slug', (req, res) => {
+  const tourAboutPath = path.join(__dirname, 'public', 'tour-about', 'index.html');
+  const fs = require('fs');
+  
+  if (fs.existsSync(tourAboutPath)) {
+    return res.sendFile(tourAboutPath);
+  } else {
+    // Если файл не найден, отправляем главную страницу
+    return res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  }
+});
+
 // Обработка всех остальных маршрутов (для статических HTML страниц)
 // Express автоматически будет искать index.html в соответствующих папках
 app.get('*', (req, res) => {
