@@ -394,47 +394,62 @@ async function loadMainVideo() {
       const videoUrl = data.videoPath + (data.videoPath.includes('?') ? '&' : '?') + 't=' + timestamp + '&r=' + Math.random();
       
       console.log('Загружаю видео:', videoUrl);
+      console.log('Текущий путь в БД:', data.videoPath);
       
-      // Сохраняем текущий источник для сравнения
-      const currentSource = videoElement.querySelector('source');
-      const currentSrc = currentSource ? currentSource.src : '';
-      
-      // Если источник уже такой же (без timestamp), все равно обновляем
+      // Получаем базовый путь без параметров для сравнения
       const basePath = data.videoPath.split('?')[0];
-      if (currentSrc.includes(basePath) && currentSrc === videoElement.querySelector('source')?.src) {
-        // Принудительно обновляем даже если путь похож
+      const currentSource = videoElement.querySelector('source');
+      const currentSrc = currentSource ? currentSource.getAttribute('src') : '';
+      const currentBasePath = currentSrc ? currentSrc.split('?')[0] : '';
+      
+      // Если путь изменился, принудительно обновляем
+      if (currentBasePath !== basePath) {
+        console.log('Путь видео изменился, обновляю:', currentBasePath, '->', basePath);
+        
+        // Полностью очищаем video элемент
         videoElement.innerHTML = '';
+        
+        // Создаем новый source элемент
+        const newSource = document.createElement('source');
+        newSource.src = videoUrl;
+        newSource.type = 'video/mp4';
+        videoElement.appendChild(newSource);
+        
+        // Убеждаемся, что все атрибуты установлены
+        videoElement.loop = true;
+        videoElement.autoplay = true;
+        videoElement.muted = true;
+        videoElement.playsInline = true;
+        videoElement.preload = 'auto';
+        
+        // Останавливаем текущее воспроизведение
+        videoElement.pause();
+        videoElement.currentTime = 0;
+        
+        // Перезагружаем видео с новым источником
+        videoElement.load();
+        
+        // Пытаемся воспроизвести после загрузки
+        const playVideo = () => {
+          videoElement.play().catch(err => {
+            console.log('Автовоспроизведение заблокировано браузером:', err);
+          });
+        };
+        
+        videoElement.addEventListener('loadeddata', playVideo, { once: true });
+        videoElement.addEventListener('canplay', playVideo, { once: true });
+        videoElement.addEventListener('loadedmetadata', playVideo, { once: true });
+        
+        // Также пытаемся воспроизвести через небольшую задержку
+        setTimeout(playVideo, 300);
+      } else {
+        console.log('Путь видео не изменился, обновляю только timestamp');
+        // Если путь тот же, просто обновляем timestamp для обхода кеша
+        if (currentSource) {
+          currentSource.src = videoUrl;
+          videoElement.load();
+        }
       }
-      
-      // Полностью заменяем содержимое video элемента
-      videoElement.innerHTML = `<source src="${videoUrl}" type="video/mp4">`;
-      
-      // Убеждаемся, что все атрибуты установлены
-      videoElement.loop = true;
-      videoElement.autoplay = true;
-      videoElement.muted = true;
-      videoElement.playsInline = true;
-      videoElement.preload = 'auto';
-      
-      // Останавливаем текущее воспроизведение
-      videoElement.pause();
-      videoElement.currentTime = 0;
-      
-      // Перезагружаем видео с новым источником
-      videoElement.load();
-      
-      // Пытаемся воспроизвести после загрузки
-      const playVideo = () => {
-        videoElement.play().catch(err => {
-          console.log('Автовоспроизведение заблокировано браузером:', err);
-        });
-      };
-      
-      videoElement.addEventListener('loadeddata', playVideo, { once: true });
-      videoElement.addEventListener('canplay', playVideo, { once: true });
-      
-      // Также пытаемся воспроизвести через небольшую задержку
-      setTimeout(playVideo, 200);
     } else {
       console.warn('Видео элемент не найден или путь не получен:', videoElement, data);
     }
