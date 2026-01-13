@@ -2,6 +2,51 @@ const express = require('express');
 const router = express.Router();
 const { Tour, TourType, TourImage, Country } = require('../../models');
 const { requireAuth } = require('../../middleware/auth');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+// Настройка multer для загрузки header изображений
+const headerImageStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadPath = path.join(__dirname, '../../public/static/images/tours');
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'tour-header-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const uploadHeaderImage = multer({
+  storage: headerImageStorage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  fileFilter: (req, file, cb) => {
+    const allowedExtensions = /\.(jpeg|jpg|png|gif|webp|heic|heif)$/i;
+    const extname = allowedExtensions.test(file.originalname);
+    
+    if (!extname) {
+      return cb(new Error('Разрешены только изображения (jpeg, jpg, png, gif, webp, heic, heif)'));
+    }
+    
+    const isHeic = /\.(heic|heif)$/i.test(file.originalname);
+    if (isHeic) {
+      return cb(null, true);
+    }
+    
+    const allowedMimeTypes = /^image\/(jpeg|jpg|png|gif|webp)$/i;
+    const mimetype = allowedMimeTypes.test(file.mimetype) || file.mimetype.startsWith('image/');
+    
+    if (mimetype) {
+      return cb(null, true);
+    } else {
+      return cb(null, true); // Разрешаем если расширение правильное
+    }
+  }
+});
 
 // Получить все туры
 router.get('/', requireAuth, async (req, res) => {
@@ -44,11 +89,11 @@ router.get('/:id', requireAuth, async (req, res) => {
 });
 
 // Создать тур
-router.post('/', requireAuth, async (req, res) => {
+router.post('/', requireAuth, uploadHeaderImage.single('headerImage'), async (req, res) => {
   try {
     const { 
       title, description, location, country, countryId, duration, daysCount, program, 
-      price, priceWednesday, priceFriday, slug, headerImage, subtitle, 
+      price, pricesByDay, slug, subtitle, 
       datesByMonth, importantInfo, faq, tourTypeId, isActive 
     } = req.body;
     
@@ -109,6 +154,25 @@ router.post('/', requireAuth, async (req, res) => {
       }
     }
 
+    let pricesByDayArray = [];
+    if (pricesByDay) {
+      if (typeof pricesByDay === 'string') {
+        try {
+          pricesByDayArray = JSON.parse(pricesByDay);
+        } catch (e) {
+          pricesByDayArray = Array.isArray(pricesByDay) ? pricesByDay : [];
+        }
+      } else if (Array.isArray(pricesByDay)) {
+        pricesByDayArray = pricesByDay;
+      }
+    }
+
+    // Обрабатываем загруженное изображение header
+    let headerImagePath = null;
+    if (req.file) {
+      headerImagePath = `/static/images/tours/${req.file.filename}`;
+    }
+
     const tour = await Tour.create({
       title,
       description,
@@ -119,10 +183,9 @@ router.post('/', requireAuth, async (req, res) => {
       daysCount: daysCount || 1,
       program: programArray,
       price,
-      priceWednesday,
-      priceFriday,
+      pricesByDay: pricesByDayArray,
       slug: slug || null,
-      headerImage: headerImage || null,
+      headerImage: headerImagePath,
       subtitle: subtitle || null,
       datesByMonth: datesByMonthArray,
       importantInfo: importantInfoObj,
@@ -147,16 +210,20 @@ router.post('/', requireAuth, async (req, res) => {
 });
 
 // Обновить тур
-router.put('/:id', requireAuth, async (req, res) => {
+router.put('/:id', requireAuth, uploadHeaderImage.single('headerImage'), async (req, res) => {
   try {
     const { 
       title, description, location, country, countryId, duration, daysCount, program, 
-      price, priceWednesday, priceFriday, slug, headerImage, subtitle, 
+      price, pricesByDay, slug, subtitle, 
       datesByMonth, importantInfo, faq, tourTypeId, isActive 
     } = req.body;
     const tour = await Tour.findByPk(req.params.id);
     
     if (!tour) {
+      // Удаляем загруженный файл если тур не найден
+      if (req.file && fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
       return res.status(404).json({ error: 'Тур не найден' });
     }
 
@@ -225,6 +292,38 @@ router.put('/:id', requireAuth, async (req, res) => {
       tour.faq = faqArray;
     }
 
+    if (pricesByDay !== undefined) {
+      let pricesByDayArray = [];
+      if (pricesByDay) {
+        if (typeof pricesByDay === 'string') {
+          try {
+            pricesByDayArray = JSON.parse(pricesByDay);
+          } catch (e) {
+            pricesByDayArray = Array.isArray(pricesByDay) ? pricesByDay : [];
+          }
+        } else if (Array.isArray(pricesByDay)) {
+          pricesByDayArray = pricesByDay;
+        }
+      }
+      tour.pricesByDay = pricesByDayArray;
+    }
+
+    // Обрабатываем загруженное изображение header
+    if (req.file) {
+      // Удаляем старое изображение если оно существует
+      if (tour.headerImage) {
+        const oldImagePath = path.join(__dirname, '../../public', tour.headerImage);
+        if (fs.existsSync(oldImagePath)) {
+          try {
+            fs.unlinkSync(oldImagePath);
+          } catch (err) {
+            console.error('Ошибка при удалении старого изображения:', err);
+          }
+        }
+      }
+      tour.headerImage = `/static/images/tours/${req.file.filename}`;
+    }
+
     tour.title = title !== undefined ? title : tour.title;
     tour.description = description !== undefined ? description : tour.description;
     tour.location = location !== undefined ? location : tour.location;
@@ -233,10 +332,7 @@ router.put('/:id', requireAuth, async (req, res) => {
     tour.duration = duration !== undefined ? duration : tour.duration;
     tour.daysCount = daysCount !== undefined ? daysCount : tour.daysCount;
     tour.price = price !== undefined ? price : tour.price;
-    tour.priceWednesday = priceWednesday !== undefined ? priceWednesday : tour.priceWednesday;
-    tour.priceFriday = priceFriday !== undefined ? priceFriday : tour.priceFriday;
     tour.slug = slug !== undefined ? slug : tour.slug;
-    tour.headerImage = headerImage !== undefined ? headerImage : tour.headerImage;
     tour.subtitle = subtitle !== undefined ? subtitle : tour.subtitle;
     tour.tourTypeId = tourTypeId !== undefined ? tourTypeId : tour.tourTypeId;
     tour.isActive = isActive !== undefined ? isActive : tour.isActive;

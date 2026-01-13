@@ -64,13 +64,11 @@ const Tour = sequelize.define('Tour', {
     type: DataTypes.STRING,
     allowNull: true
   },
-  priceWednesday: {
-    type: DataTypes.DECIMAL(10, 2),
-    allowNull: true
-  },
-  priceFriday: {
-    type: DataTypes.DECIMAL(10, 2),
-    allowNull: true
+  // Цены по дням недели: [{"day": "среда", "price": 8990}, {"day": "пятница", "price": 9990}]
+  pricesByDay: {
+    type: DataTypes.JSON,
+    allowNull: true,
+    defaultValue: []
   },
   datesByMonth: {
     type: DataTypes.JSON,

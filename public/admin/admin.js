@@ -546,8 +546,9 @@ function showTourForm(tourId = null) {
                     </div>
                     <div class="form-group">
                         <label>Фоновое изображение header</label>
-                        <input type="text" id="tourHeaderImage" placeholder="/static/images/ala-kul2.jpg">
-                        <small style="color: #666; display: block; margin-top: 5px;">Путь к изображению для фона header</small>
+                        <input type="file" id="tourHeaderImage" accept="image/*">
+                        <small style="color: #666; display: block; margin-top: 5px;">Загрузите изображение для фона header</small>
+                        <div id="tourHeaderImagePreview" style="margin-top: 10px;"></div>
                     </div>
                     <div class="form-group">
                         <label>Описание</label>
@@ -558,14 +559,14 @@ function showTourForm(tourId = null) {
                             <label>Цена (общая)</label>
                             <input type="number" id="tourPrice" step="0.01">
                         </div>
-                        <div class="form-group">
-                            <label>Цена по средам</label>
-                            <input type="number" id="tourPriceWednesday" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label>Цены по дням недели</label>
+                        <div id="tourPricesByDayContainer">
+                            <!-- Динамические поля для дней недели -->
                         </div>
-                        <div class="form-group">
-                            <label>Цена по пятницам</label>
-                            <input type="number" id="tourPriceFriday" step="0.01">
-                        </div>
+                        <button type="button" class="btn btn-primary" onclick="addPriceDay()" style="margin-top: 10px;">+ Добавить день</button>
+                        <small style="color: #666; display: block; margin-top: 5px;">Укажите дни недели и цены для каждого дня</small>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
@@ -657,18 +658,32 @@ function showTourForm(tourId = null) {
                     document.getElementById('tourTitle').value = data.title || '';
                     document.getElementById('tourSlug').value = data.slug || '';
                     document.getElementById('tourSubtitle').value = data.subtitle || '';
-                    document.getElementById('tourHeaderImage').value = data.headerImage || '';
+                    
+                    // Показываем превью текущего изображения
+                    if (data.headerImage) {
+                        const preview = document.getElementById('tourHeaderImagePreview');
+                        preview.innerHTML = '<img src="' + data.headerImage + '" style="max-width: 200px; max-height: 150px; border-radius: 4px;"><br><small>Текущее изображение</small>';
+                    }
+                    
                     document.getElementById('tourDescription').value = data.description || '';
                     document.getElementById('tourCountryId').value = data.countryId || '';
                     document.getElementById('tourCountry').value = data.country || 'Кыргызстан';
                     document.getElementById('tourPrice').value = data.price || '';
-                    document.getElementById('tourPriceWednesday').value = data.priceWednesday || '';
-                    document.getElementById('tourPriceFriday').value = data.priceFriday || '';
                     document.getElementById('tourTypeId').value = data.tourTypeId || '';
                     document.getElementById('tourIsActive').checked = data.isActive;
                     document.getElementById('tourDatesByMonth').value = data.datesByMonth ? JSON.stringify(data.datesByMonth, null, 2) : '';
                     document.getElementById('tourImportantInfo').value = data.importantInfo ? JSON.stringify(data.importantInfo, null, 2) : '';
                     document.getElementById('tourFaq').value = data.faq ? JSON.stringify(data.faq, null, 2) : '';
+                    
+                    // Загружаем цены по дням недели
+                    const pricesByDay = data.pricesByDay && Array.isArray(data.pricesByDay) ? data.pricesByDay : [];
+                    const pricesContainer = document.getElementById('tourPricesByDayContainer');
+                    pricesContainer.innerHTML = '';
+                    if (pricesByDay.length > 0) {
+                        pricesByDay.forEach(item => {
+                            addPriceDay(item.day || '', item.price || '');
+                        });
+                    }
                     
                     // Устанавливаем количество дней и программу
                     const daysCount = data.daysCount || 1;
@@ -696,6 +711,21 @@ function showTourForm(tourId = null) {
                     });
                 }
             }
+            
+            // Собираем цены по дням недели
+            const pricesByDay = [];
+            const pricesContainer = document.getElementById('tourPricesByDayContainer');
+            const priceRows = pricesContainer.querySelectorAll('div');
+            priceRows.forEach(row => {
+                const dayInput = row.querySelector('input[type="text"]');
+                const priceInput = row.querySelector('input[type="number"]');
+                if (dayInput && dayInput.value.trim() && priceInput && priceInput.value) {
+                    pricesByDay.push({
+                        day: dayInput.value.trim(),
+                        price: parseFloat(priceInput.value)
+                    });
+                }
+            });
             
             // Парсим JSON поля
             let datesByMonth = [];
@@ -731,42 +761,45 @@ function showTourForm(tourId = null) {
                 return;
             }
 
-            const data = {
-                title: document.getElementById('tourTitle').value,
-                slug: document.getElementById('tourSlug').value || null,
-                subtitle: document.getElementById('tourSubtitle').value || null,
-                headerImage: document.getElementById('tourHeaderImage').value || null,
-                description: document.getElementById('tourDescription').value,
-                country: document.getElementById('tourCountry').value || null,
-                countryId: document.getElementById('tourCountryId').value || null,
-                daysCount: daysCount,
-                program: program,
-                price: parseFloat(document.getElementById('tourPrice').value) || null,
-                priceWednesday: parseFloat(document.getElementById('tourPriceWednesday').value) || null,
-                priceFriday: parseFloat(document.getElementById('tourPriceFriday').value) || null,
-                datesByMonth: datesByMonth,
-                importantInfo: importantInfo,
-                faq: faq,
-                tourTypeId: document.getElementById('tourTypeId').value || null,
-                isActive: document.getElementById('tourIsActive').checked
-            };
+            // Создаем FormData для отправки файла
+            const formData = new FormData();
+            formData.append('title', document.getElementById('tourTitle').value);
+            formData.append('slug', document.getElementById('tourSlug').value || '');
+            formData.append('subtitle', document.getElementById('tourSubtitle').value || '');
+            formData.append('description', document.getElementById('tourDescription').value);
+            formData.append('country', document.getElementById('tourCountry').value || '');
+            formData.append('countryId', document.getElementById('tourCountryId').value || '');
+            formData.append('daysCount', daysCount);
+            formData.append('program', JSON.stringify(program));
+            formData.append('price', document.getElementById('tourPrice').value || '');
+            formData.append('pricesByDay', JSON.stringify(pricesByDay));
+            formData.append('datesByMonth', JSON.stringify(datesByMonth));
+            formData.append('importantInfo', JSON.stringify(importantInfo));
+            formData.append('faq', JSON.stringify(faq));
+            formData.append('tourTypeId', document.getElementById('tourTypeId').value || '');
+            formData.append('isActive', document.getElementById('tourIsActive').checked);
+            
+            // Добавляем файл если выбран
+            const headerImageInput = document.getElementById('tourHeaderImage');
+            if (headerImageInput.files.length > 0) {
+                formData.append('headerImage', headerImageInput.files[0]);
+            }
             
             try {
                 if (tourId) {
-                    await fetch(`/api/admin/tours/${tourId}`, {
+                    await apiFetch(`/api/admin/tours/${tourId}`, {
                         method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(data)
+                        body: formData
                     });
                 } else {
                     await apiFetch('/api/admin/tours', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(data)
+                        body: formData
                     });
                 }
                 loadTours();
             } catch (error) {
+                console.error('Ошибка при сохранении:', error);
                 alert('Ошибка при сохранении');
             }
         });
