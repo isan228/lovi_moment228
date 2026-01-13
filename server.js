@@ -23,6 +23,14 @@ app.use(session({
 }));
 
 // Middleware для парсинга тела запроса
+// Пропускаем multipart/form-data (для загрузки файлов) - их обрабатывает multer
+app.use((req, res, next) => {
+  if (req.headers['content-type'] && req.headers['content-type'].includes('multipart/form-data')) {
+    return next(); // Пропускаем multipart запросы - их обработает multer
+  }
+  next();
+});
+
 // Увеличиваем лимит для загрузки больших файлов (видео)
 app.use(bodyParser.json({ limit: '200mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '200mb' }));
