@@ -1164,7 +1164,7 @@ async function loadSettings() {
                     });
                     
                     if (response.ok) {
-                        alert('Видео успешно обновлено!');
+                        alert('Видео успешно обновлено! Старое видео удалено. Обновите страницу сайта (Ctrl+F5) чтобы увидеть изменения.');
                         loadSettings();
                     } else {
                         const error = await response.json();
@@ -1172,6 +1172,33 @@ async function loadSettings() {
                     }
                 } catch (error) {
                     alert('Ошибка при загрузке видео');
+                    console.error(error);
+                }
+            });
+        }
+        
+        // Обработка удаления видео
+        const deleteVideoBtn = document.getElementById('deleteVideoBtn');
+        if (deleteVideoBtn) {
+            deleteVideoBtn.addEventListener('click', async () => {
+                if (!confirm('Вы уверены, что хотите удалить текущее видео? После удаления будет использоваться видео по умолчанию.')) {
+                    return;
+                }
+                
+                try {
+                    const response = await apiFetch('/api/admin/settings/main_video', {
+                        method: 'DELETE'
+                    });
+                    
+                    if (response.ok) {
+                        alert('Видео успешно удалено! Будет использоваться видео по умолчанию.');
+                        loadSettings();
+                    } else {
+                        const error = await response.json();
+                        alert('Ошибка: ' + (error.error || 'Не удалось удалить видео'));
+                    }
+                } catch (error) {
+                    alert('Ошибка при удалении видео');
                     console.error(error);
                 }
             });
