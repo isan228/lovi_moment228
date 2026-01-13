@@ -118,9 +118,9 @@
         <!-- Слайды программы будут загружены динамически -->
       </div>
 
-      <button class="program-carousel__arrow prev"><img src="/static/images/arrowsLeft.png" alt=""></button>
-      <button class="program-carousel__arrow next"><img src="/static/images/strelki.png" alt=""></button>
     </div>
+    <button class="program-carousel__arrow prev"><img src="/static/images/arrowsLeft.png" alt=""></button>
+    <button class="program-carousel__arrow next"><img src="/static/images/strelki.png" alt=""></button>
   </section>
   <section class="accordion-section">
 
@@ -817,15 +817,9 @@ function updateTourDatesCard(tour) {
   const pricesContainer = document.getElementById('tourPricesContainer');
   const datesList = document.getElementById('tourDatesList');
   
-  // Заголовок длительности
-  if (durationTitle && tour.daysCount) {
-    const daysText = tour.daysCount === 1 ? 'Однодневный тур' :
-                     tour.daysCount === 2 ? 'Двухдневный тур' :
-                     tour.daysCount === 3 ? 'Трехдневный тур' :
-                     tour.daysCount === 4 ? 'Четырехдневный тур' :
-                     tour.daysCount === 5 ? 'Пятидневный тур' :
-                     `${tour.daysCount}-дневный тур`;
-    durationTitle.textContent = daysText;
+  // Заголовок - просто "Тур" как в старой версии
+  if (durationTitle) {
+    durationTitle.textContent = 'Тур';
   }
   
   // Цены по дням недели
@@ -1046,94 +1040,93 @@ function updateTourProgram(tour) {
     programNav.appendChild(dayBtn);
   });
   
-  // Создаем слайды программы
+  // Создаем слайды программы - каждый день = один слайд (как в старой версии)
   program.forEach((day, dayIndex) => {
-    // Поддерживаем разные форматы: day.items или day как массив строк
-    let items = [];
+    const slide = document.createElement('div');
+    slide.className = 'program-carousel__slide';
+    if (dayIndex === 0) slide.classList.add('active');
+    slide.setAttribute('data-day', dayIndex);
+    
+    // Медиа контент
+    const media = document.createElement('div');
+    media.className = 'program-carousel__media';
+    
+    // Левая колонка: высокое фото
+    const tallCol = document.createElement('div');
+    tallCol.className = 'media-col media-col--tall';
+    const tallImg = document.createElement('img');
+    tallImg.className = 'media-col__img';
+    // Используем изображения из day, если есть
+    let img1 = '/static/images/fk1.png';
+    if (day.images && Array.isArray(day.images) && day.images[0]) {
+      img1 = day.images[0];
+    } else if (day.image) {
+      img1 = day.image;
+    }
+    tallImg.src = img1;
+    tallImg.alt = '';
+    tallCol.appendChild(tallImg);
+    media.appendChild(tallCol);
+    
+    // Правая колонка: два маленьких фото
+    const smallCol = document.createElement('div');
+    smallCol.className = 'media-col media-col--small';
+    
+    const smallImg1 = document.createElement('img');
+    smallImg1.className = 'media-col__img';
+    let img2 = '/static/images/fk2.png';
+    if (day.images && Array.isArray(day.images) && day.images[1]) {
+      img2 = day.images[1];
+    }
+    smallImg1.src = img2;
+    smallImg1.alt = '';
+    smallCol.appendChild(smallImg1);
+    
+    const smallImg2 = document.createElement('img');
+    smallImg2.className = 'media-col__img';
+    let img3 = '/static/images/fk3.png';
+    if (day.images && Array.isArray(day.images) && day.images[2]) {
+      img3 = day.images[2];
+    }
+    smallImg2.src = img3;
+    smallImg2.alt = '';
+    smallCol.appendChild(smallImg2);
+    
+    media.appendChild(smallCol);
+    slide.appendChild(media);
+    
+    // Текст - собираем все элементы дня
+    const text = document.createElement('div');
+    text.className = 'program-carousel__text';
+    const p = document.createElement('p');
+    
+    // Формируем текст программы
+    let programText = '';
     if (day.items && Array.isArray(day.items)) {
-      items = day.items;
-    } else if (Array.isArray(day)) {
-      items = day;
+      // Если есть items, собираем их в текст с <br>
+      programText = day.items.map(item => {
+        const itemText = item.description || item.text || item || '';
+        return itemText.trim();
+      }).filter(t => t).join(' <br>');
+    } else if (day.description) {
+      programText = day.description;
     } else if (typeof day === 'string') {
-      // Если день - это просто строка, создаем один элемент
-      items = [{ description: day }];
+      programText = day;
+    } else if (Array.isArray(day)) {
+      programText = day.map(item => item.description || item.text || item || '').filter(t => t).join(' <br>');
     }
     
-    if (items.length === 0) {
-      console.warn(`День ${dayIndex + 1} не имеет элементов`);
-      return;
+    // Если текст содержит <br>, используем innerHTML, иначе textContent
+    if (programText.includes('<br>')) {
+      p.innerHTML = programText;
+    } else {
+      p.textContent = programText;
     }
     
-    items.forEach((item, itemIndex) => {
-      const slide = document.createElement('div');
-      slide.className = 'program-carousel__slide';
-      if (dayIndex === 0 && itemIndex === 0) slide.classList.add('active');
-      slide.setAttribute('data-day', dayIndex);
-      
-      // Медиа контент
-      const media = document.createElement('div');
-      media.className = 'program-carousel__media';
-      
-      // Левая колонка: высокое фото
-      const tallCol = document.createElement('div');
-      tallCol.className = 'media-col media-col--tall';
-      const tallImg = document.createElement('img');
-      tallImg.className = 'media-col__img';
-      // Поддерживаем разные форматы изображений
-      let img1 = '/static/images/fk1.png';
-      if (item.images && Array.isArray(item.images) && item.images[0]) {
-        img1 = item.images[0];
-      } else if (item.image) {
-        img1 = item.image;
-      }
-      tallImg.src = img1;
-      tallImg.alt = '';
-      tallCol.appendChild(tallImg);
-      media.appendChild(tallCol);
-      
-      // Правая колонка: два маленьких фото
-      const smallCol = document.createElement('div');
-      smallCol.className = 'media-col media-col--small';
-      
-      const smallImg1 = document.createElement('img');
-      smallImg1.className = 'media-col__img';
-      let img2 = '/static/images/fk2.png';
-      if (item.images && Array.isArray(item.images) && item.images[1]) {
-        img2 = item.images[1];
-      }
-      smallImg1.src = img2;
-      smallImg1.alt = '';
-      smallCol.appendChild(smallImg1);
-      
-      const smallImg2 = document.createElement('img');
-      smallImg2.className = 'media-col__img';
-      let img3 = '/static/images/fk3.png';
-      if (item.images && Array.isArray(item.images) && item.images[2]) {
-        img3 = item.images[2];
-      }
-      smallImg2.src = img3;
-      smallImg2.alt = '';
-      smallCol.appendChild(smallImg2);
-      
-      media.appendChild(smallCol);
-      slide.appendChild(media);
-      
-      // Текст
-      const text = document.createElement('div');
-      text.className = 'program-carousel__text';
-      const p = document.createElement('p');
-      // Поддерживаем разные форматы текста
-      let description = item.description || item.text || item || '';
-      // Если описание содержит <br>, заменяем на переносы строк
-      if (typeof description === 'string' && description.includes('<br>')) {
-        description = description.replace(/<br>/g, '\n');
-      }
-      p.textContent = description;
-      text.appendChild(p);
-      slide.appendChild(text);
-      
-      programTrack.appendChild(slide);
-    });
+    text.appendChild(p);
+    slide.appendChild(text);
+    
+    programTrack.appendChild(slide);
   });
   
   console.log('Программа обновлена, создано слайдов:', programTrack.children.length);
