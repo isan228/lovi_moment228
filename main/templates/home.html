@@ -591,13 +591,46 @@ async function loadTourTypes() {
     const formatDate = (dateStr) => {
       if (!dateStr) return { day: '', month: '' };
       try {
-        const date = new Date(dateStr);
+        // Пробуем разные форматы даты
+        let date;
+        if (typeof dateStr === 'string') {
+          // Если это строка, пробуем распарсить
+          date = new Date(dateStr);
+          // Проверяем, что дата валидна
+          if (isNaN(date.getTime())) {
+            // Пробуем другой формат: "DD.MM.YYYY" или "YYYY-MM-DD"
+            const parts = dateStr.split(/[.\-\/]/);
+            if (parts.length === 3) {
+              // Если формат DD.MM.YYYY
+              if (parts[0].length === 2 && parts[1].length === 2) {
+                date = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+              } else {
+                // Если формат YYYY-MM-DD
+                date = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+              }
+            } else {
+              return { day: '', month: '' };
+            }
+          }
+        } else if (dateStr instanceof Date) {
+          date = dateStr;
+        } else {
+          return { day: '', month: '' };
+        }
+        
+        // Проверяем, что дата валидна
+        if (isNaN(date.getTime())) {
+          console.warn('Невалидная дата:', dateStr);
+          return { day: '', month: '' };
+        }
+        
         const months = ['янв', 'фев', 'мар', 'апр', 'мая', 'июня', 'июля', 'авг', 'сент', 'окт', 'ноя', 'дек'];
         return {
           day: date.getDate().toString(),
           month: months[date.getMonth()]
         };
       } catch (e) {
+        console.error('Ошибка при форматировании даты:', dateStr, e);
         return { day: '', month: '' };
       }
     };
@@ -632,24 +665,33 @@ async function loadTourTypes() {
           try {
             dates = JSON.parse(tourType.dates);
           } catch (e) {
+            console.warn('Ошибка при парсинге дат из строки:', tourType.dates, e);
             dates = [];
           }
         } else if (Array.isArray(tourType.dates)) {
           dates = tourType.dates;
+        } else {
+          dates = [];
         }
       }
+      
+      console.log('Даты для тура', tourType.name, ':', dates);
       
       // Если дат нет, используем дефолтные
       if (dates.length === 0) {
         dates = ['2024-07-12', '2024-08-18', '2024-09-02'];
       }
       
-      // Ограничиваем до 3 дат
+      // Ограничиваем до 3 дат и форматируем их
       dates.slice(0, 3).forEach(dateStr => {
         const date = formatDate(dateStr);
-        const dateItem = document.createElement('div');
-        dateItem.innerHTML = `<span>${date.day}</span><small>${date.month}</small>`;
-        datesDiv.appendChild(dateItem);
+        if (date.day && date.month) {
+          const dateItem = document.createElement('div');
+          dateItem.innerHTML = `<span>${date.day}</span><small>${date.month}</small>`;
+          datesDiv.appendChild(dateItem);
+        } else {
+          console.warn('Не удалось отформатировать дату:', dateStr);
+        }
       });
       
       card.appendChild(datesDiv);
