@@ -105,18 +105,36 @@ app.get('/api/tour-types', async (req, res) => {
   }
 });
 
-// Получить тур по slug (публичный)
+// Получить тур по slug или id (публичный)
 app.get('/api/tours/:slug', async (req, res) => {
   try {
     const { Tour, TourType, TourImage, Country } = require('./models');
-    const tour = await Tour.findOne({
-      where: { slug: req.params.slug, isActive: true },
+    const identifier = req.params.slug;
+    
+    // Пытаемся найти тур по slug или id
+    let tour = null;
+    
+    // Сначала пробуем найти по slug
+    tour = await Tour.findOne({
+      where: { slug: identifier, isActive: true },
       include: [
         { model: TourType, as: 'tourType' },
         { model: TourImage, as: 'images', order: [['order', 'ASC']] },
         { model: Country, as: 'countryData' }
       ]
     });
+    
+    // Если не найден по slug, пробуем найти по id (если identifier - число)
+    if (!tour && !isNaN(identifier)) {
+      tour = await Tour.findOne({
+        where: { id: parseInt(identifier), isActive: true },
+        include: [
+          { model: TourType, as: 'tourType' },
+          { model: TourImage, as: 'images', order: [['order', 'ASC']] },
+          { model: Country, as: 'countryData' }
+        ]
+      });
+    }
     
     if (!tour) {
       return res.status(404).json({ error: 'Тур не найден' });
