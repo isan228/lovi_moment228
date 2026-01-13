@@ -507,9 +507,68 @@ async function loadMainVideo() {
   }
 }
 
+// Загрузка изображений галереи для главной страницы
+async function loadHomeGallery() {
+  try {
+    const response = await fetch('/api/gallery');
+    const images = await response.json();
+    
+    const firstRowTrack = document.querySelector('.gallery-section .first-row .gallery-track');
+    const secondRowTrack = document.querySelector('.gallery-section .second-row .gallery-track');
+    
+    if (!firstRowTrack || !secondRowTrack) {
+      console.warn('Элементы галереи не найдены');
+      return;
+    }
+    
+    if (!images || images.length === 0) {
+      // Если нет изображений из API, оставляем статические
+      console.log('Нет изображений из API, используем статические');
+      return;
+    }
+    
+    // Очищаем существующие изображения
+    firstRowTrack.innerHTML = '';
+    secondRowTrack.innerHTML = '';
+    
+    // Распределяем изображения между двумя рядами
+    // Берем первые изображения для первого ряда, остальные для второго
+    const firstRowImages = images.slice(0, Math.ceil(images.length / 2));
+    const secondRowImages = images.slice(Math.ceil(images.length / 2));
+    
+    // Функция для добавления изображений в ряд (с дублированием для бесконечной прокрутки)
+    const addImagesToRow = (track, imageList) => {
+      // Добавляем изображения дважды для бесконечной прокрутки
+      [...imageList, ...imageList].forEach((img, index) => {
+        const imgEl = document.createElement('img');
+        imgEl.src = img.imagePath;
+        imgEl.alt = img.title || `Фотография ${index + 1}`;
+        track.appendChild(imgEl);
+      });
+    };
+    
+    // Если изображений мало, используем все для обоих рядов
+    if (images.length < 5) {
+      addImagesToRow(firstRowTrack, images);
+      addImagesToRow(secondRowTrack, images);
+    } else {
+      addImagesToRow(firstRowTrack, firstRowImages);
+      addImagesToRow(secondRowTrack, secondRowImages);
+    }
+    
+    console.log('Галерея загружена:', images.length, 'изображений');
+  } catch (error) {
+    console.error('Ошибка при загрузке галереи:', error);
+    // В случае ошибки оставляем статические изображения
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   // Загружаем видео главной страницы
   loadMainVideo();
+  
+  // Загружаем галерею
+  loadHomeGallery();
   
   // Периодически проверяем обновление видео (каждые 30 секунд)
   // Это нужно, если видео было обновлено через админ-панель, пока страница открыта
