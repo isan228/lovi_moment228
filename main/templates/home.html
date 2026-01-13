@@ -783,6 +783,7 @@ function initCarousel() {
   const cards = Array.from(track.querySelectorAll('.tour-card'));
   const dots = Array.from(dotsNav.querySelectorAll('.dot'));
   let currentIndex = 0;
+  let autoPlayInterval = null;
   
   if (cards.length === 0) {
     return;
@@ -820,11 +821,49 @@ function initCarousel() {
     }
   }
   
+  // Функция для автоматического переключения
+  function startAutoPlay() {
+    // Останавливаем предыдущий интервал, если он есть
+    if (autoPlayInterval) {
+      clearInterval(autoPlayInterval);
+    }
+    
+    // Запускаем автоматическое переключение каждые 4 секунды
+    autoPlayInterval = setInterval(() => {
+      // Переключаем на следующий тур
+      if (currentIndex < cards.length - 1) {
+        currentIndex++;
+      } else {
+        // Если достигли конца, возвращаемся к началу
+        currentIndex = 0;
+      }
+      scrollToIndex(currentIndex);
+    }, 4000); // 4 секунды
+  }
+  
+  // Функция для остановки автоматического переключения
+  function stopAutoPlay() {
+    if (autoPlayInterval) {
+      clearInterval(autoPlayInterval);
+      autoPlayInterval = null;
+    }
+  }
+  
+  // Функция для перезапуска автоматического переключения
+  function restartAutoPlay() {
+    stopAutoPlay();
+    // Перезапускаем через 4 секунды после ручного управления
+    setTimeout(() => {
+      startAutoPlay();
+    }, 4000);
+  }
+  
   // клики по стрелкам
   prevBtn.onclick = () => {
     if (currentIndex > 0) {
       currentIndex--;
       scrollToIndex(currentIndex);
+      restartAutoPlay(); // Перезапускаем автоматическое переключение
     }
   };
   
@@ -832,6 +871,7 @@ function initCarousel() {
     if (currentIndex < cards.length - 1) {
       currentIndex++;
       scrollToIndex(currentIndex);
+      restartAutoPlay(); // Перезапускаем автоматическое переключение
     }
   };
   
@@ -841,11 +881,25 @@ function initCarousel() {
     if (i !== -1) {
       currentIndex = i;
       scrollToIndex(currentIndex);
+      restartAutoPlay(); // Перезапускаем автоматическое переключение
     }
   };
   
+  // Останавливаем автоматическое переключение при наведении на карусель
+  track.addEventListener('mouseenter', stopAutoPlay);
+  track.addEventListener('mouseleave', startAutoPlay);
+  
+  // Останавливаем автоматическое переключение при наведении на стрелки
+  prevBtn.addEventListener('mouseenter', stopAutoPlay);
+  nextBtn.addEventListener('mouseenter', stopAutoPlay);
+  prevBtn.addEventListener('mouseleave', startAutoPlay);
+  nextBtn.addEventListener('mouseleave', startAutoPlay);
+  
   // первая инициализация
   scrollToIndex(0);
+  
+  // Запускаем автоматическое переключение
+  startAutoPlay();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
