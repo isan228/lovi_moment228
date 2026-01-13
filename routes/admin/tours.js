@@ -350,7 +350,7 @@ router.put('/:id', requireAuth, uploadHeaderImage.single('headerImage'), async (
     tour.countryId = countryId !== undefined ? countryId : tour.countryId;
     tour.duration = duration !== undefined ? duration : tour.duration;
     tour.daysCount = daysCount !== undefined ? daysCount : tour.daysCount;
-    tour.price = price !== undefined ? price : tour.price;
+    // tour.price уже обработан выше (строки 336-344)
     tour.slug = slug !== undefined ? slug : tour.slug;
     tour.subtitle = subtitle !== undefined ? subtitle : tour.subtitle;
     tour.tourTypeId = tourTypeId !== undefined ? tourTypeId : tour.tourTypeId;
