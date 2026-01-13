@@ -20,7 +20,7 @@ function createSlug(title) {
 // Настройка Multer для загрузки изображений блогов
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadPath = path.join(__dirname, '../../static/images/blogs');
+    const uploadPath = path.join(__dirname, '../../public/static/images/blogs');
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true });
     }

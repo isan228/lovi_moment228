@@ -9,7 +9,7 @@ const { requireAuth } = require('../../middleware/auth');
 // Настройка Multer для загрузки изображений видов туров
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadPath = path.join(__dirname, '../../static/images/tour-types');
+    const uploadPath = path.join(__dirname, '../../public/static/images/tour-types');
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true });
     }
@@ -120,7 +120,10 @@ router.put('/:id', requireAuth, upload.single('image'), async (req, res) => {
     // Если загружено новое изображение, удаляем старое
     if (req.file) {
       if (tourType.imagePath) {
-        const oldImagePath = path.join(__dirname, '../../static/images/tour-types', path.basename(tourType.imagePath));
+        // Проверяем оба пути (старый и новый)
+        const oldImagePathPublic = path.join(__dirname, '../../public/static/images/tour-types', path.basename(tourType.imagePath));
+        const oldImagePathStatic = path.join(__dirname, '../../static/images/tour-types', path.basename(tourType.imagePath));
+        const oldImagePath = fs.existsSync(oldImagePathPublic) ? oldImagePathPublic : oldImagePathStatic;
         if (fs.existsSync(oldImagePath)) {
           try {
             fs.unlinkSync(oldImagePath);

@@ -9,7 +9,7 @@ const { requireAuth } = require('../../middleware/auth');
 // Настройка Multer для загрузки баннеров стран
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadPath = path.join(__dirname, '../../static/images/countries');
+    const uploadPath = path.join(__dirname, '../../public/static/images/countries');
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true });
     }

@@ -9,7 +9,7 @@ const { requireAuth } = require('../../middleware/auth');
 // Настройка Multer для загрузки изображений отзывов
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadPath = path.join(__dirname, '../../static/images/reviews');
+    const uploadPath = path.join(__dirname, '../../public/static/images/reviews');
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true });
     }

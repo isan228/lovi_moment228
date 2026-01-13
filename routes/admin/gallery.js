@@ -9,8 +9,8 @@ const fs = require('fs');
 // Настройка multer для загрузки изображений
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    // Создаем папку в static/images/gallery (для публичного доступа)
-    const uploadPath = path.join(__dirname, '../../static/images/gallery');
+    // Создаем папку в public/static/images/gallery (для публичного доступа)
+    const uploadPath = path.join(__dirname, '../../public/static/images/gallery');
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true });
     }
@@ -135,7 +135,10 @@ router.post('/', requireAuth, upload.array('images', 50), async (req, res) => {
       for (const image of oldestImages) {
         try {
           // Удаляем физический файл
-          const filePath = path.join(__dirname, '../../static/images/gallery', path.basename(image.imagePath));
+          // Проверяем оба пути (старый и новый)
+          const filePathPublic = path.join(__dirname, '../../public/static/images/gallery', path.basename(image.imagePath));
+          const filePathStatic = path.join(__dirname, '../../static/images/gallery', path.basename(image.imagePath));
+          const filePath = fs.existsSync(filePathPublic) ? filePathPublic : filePathStatic;
           if (fs.existsSync(filePath)) {
             fs.unlinkSync(filePath);
           }
