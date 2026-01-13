@@ -56,6 +56,25 @@ router.get('/', requireAuth, async (req, res) => {
   }
 });
 
+// Получить настройку main_video (специальный маршрут перед общим)
+router.get('/main_video', requireAuth, async (req, res) => {
+  try {
+    const setting = await Settings.findOne({
+      where: { key: 'main_video' }
+    });
+    
+    // Если настройка не найдена, возвращаем значение по умолчанию
+    if (!setting) {
+      return res.json({ key: 'main_video', value: '/static/images/mainback3.mp4' });
+    }
+    
+    res.json({ key: setting.key, value: setting.value });
+  } catch (error) {
+    console.error('Ошибка при получении видео:', error);
+    res.status(500).json({ error: 'Ошибка при получении видео' });
+  }
+});
+
 // Получить одну настройку по ключу
 router.get('/:key', requireAuth, async (req, res) => {
   try {
@@ -100,29 +119,8 @@ router.post('/', requireAuth, async (req, res) => {
   }
 });
 
-// Обновить настройку
-router.put('/:key', requireAuth, async (req, res) => {
-  try {
-    const { value } = req.body;
-    const setting = await Settings.findOne({
-      where: { key: req.params.key }
-    });
-    
-    if (!setting) {
-      return res.status(404).json({ error: 'Настройка не найдена' });
-    }
-
-    setting.value = value !== undefined ? value : setting.value;
-    await setting.save();
-
-    res.json(setting);
-  } catch (error) {
-    console.error('Ошибка при обновлении настройки:', error);
-    res.status(500).json({ error: 'Ошибка при обновлении настройки' });
-  }
-});
-
 // Обновить видео главной страницы (с загрузкой файла)
+// ВАЖНО: должен быть ПЕРЕД router.put('/:key'), иначе будет перехвачен общим маршрутом
 router.put('/main_video', requireAuth, uploadVideo.single('video'), async (req, res) => {
   try {
     if (!req.file) {
@@ -261,7 +259,7 @@ router.delete('/main_video', requireAuth, async (req, res) => {
   }
 });
 
-// Удалить настройку
+// Удалить настройку (общий маршрут)
 router.delete('/:key', requireAuth, async (req, res) => {
   try {
     const setting = await Settings.findOne({
