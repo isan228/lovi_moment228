@@ -1065,8 +1065,14 @@ async function loadSettings() {
             apiFetch('/api/admin/settings/stats/all')
         ]);
         
+        if (!videoResponse.ok) {
+            console.error('Ошибка при загрузке видео:', videoResponse.status);
+        }
+        
         const setting = await videoResponse.json();
         const stats = await statsResponse.json();
+        
+        console.log('Загруженные настройки видео:', setting);
         
         const content = document.getElementById('settingsContent');
         content.innerHTML = `
