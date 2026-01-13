@@ -624,6 +624,16 @@ function showTourForm(tourId = null) {
                         <small style="color: #666; display: block; margin-top: 5px;">Заполните программу для каждого дня тура</small>
                     </div>
                     <div class="form-group">
+                        <label>Важная информация (JSON)</label>
+                        <textarea id="tourImportantInfo" rows="6" placeholder='Пример: {"included": ["Проживание", "Трансфер"], "notIncluded": ["Авиаперелет"], "payment": ["Предоплата 30%"]}'></textarea>
+                        <small style="color: #666; display: block; margin-top: 5px;">Оставьте пустым, если нет информации. Формат: JSON объект.</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Часто задаваемые вопросы (JSON)</label>
+                        <textarea id="tourFaq" rows="6" placeholder='Пример: [{"question": "Вопрос?", "answer": "Ответ"}]'></textarea>
+                        <small style="color: #666; display: block; margin-top: 5px;">Оставьте пустым, если нет вопросов. Формат: JSON массив объектов.</small>
+                    </div>
+                    <div class="form-group">
                         <label>
                             <input type="checkbox" id="tourIsActive" checked> Активен
                         </label>
@@ -1142,12 +1152,15 @@ function showTourForm(tourId = null) {
 
             let importantInfo = {};
             try {
-                const importantInfoText = document.getElementById('tourImportantInfo').value.trim();
-                if (importantInfoText) {
-                    importantInfo = JSON.parse(importantInfoText);
-                    // Проверяем, что это объект
-                    if (typeof importantInfo !== 'object' || Array.isArray(importantInfo)) {
-                        throw new Error('importantInfo должен быть объектом');
+                const importantInfoElement = document.getElementById('tourImportantInfo');
+                if (importantInfoElement) {
+                    const importantInfoText = importantInfoElement.value.trim();
+                    if (importantInfoText) {
+                        importantInfo = JSON.parse(importantInfoText);
+                        // Проверяем, что это объект
+                        if (typeof importantInfo !== 'object' || Array.isArray(importantInfo)) {
+                            throw new Error('importantInfo должен быть объектом');
+                        }
                     }
                 }
             } catch (e) {
@@ -1158,12 +1171,15 @@ function showTourForm(tourId = null) {
 
             let faq = [];
             try {
-                const faqText = document.getElementById('tourFaq').value.trim();
-                if (faqText) {
-                    faq = JSON.parse(faqText);
-                    // Проверяем, что это массив
-                    if (!Array.isArray(faq)) {
-                        throw new Error('faq должен быть массивом');
+                const faqElement = document.getElementById('tourFaq');
+                if (faqElement) {
+                    const faqText = faqElement.value.trim();
+                    if (faqText) {
+                        faq = JSON.parse(faqText);
+                        // Проверяем, что это массив
+                        if (!Array.isArray(faq)) {
+                            throw new Error('faq должен быть массивом');
+                        }
                     }
                 }
             } catch (e) {
