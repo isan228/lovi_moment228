@@ -34,17 +34,20 @@ const upload = multer({
       return cb(new Error('Разрешены только изображения (jpeg, jpg, png, gif, webp, heic, heif)'));
     }
     
-    // Проверяем MIME тип (более гибкая проверка)
-    const allowedMimeTypes = /^image\/(jpeg|jpg|png|gif|webp|heic|heif|x-heic|x-heif|quicktime)$/i;
-    // HEIC файлы могут иметь MIME тип 'image/heic', 'image/heif', 'image/x-heic', 'image/x-heif' или даже 'video/quicktime'
+    // Для HEIC/HEIF файлов разрешаем любые MIME типы (многие браузеры отправляют application/octet-stream)
+    const isHeic = /\.(heic|heif)$/i.test(file.originalname);
+    if (isHeic) {
+      return cb(null, true);
+    }
+    
+    // Для остальных форматов проверяем MIME тип
+    const allowedMimeTypes = /^image\/(jpeg|jpg|png|gif|webp)$/i;
     const mimetype = allowedMimeTypes.test(file.mimetype) || file.mimetype.startsWith('image/');
     
     if (mimetype) {
       return cb(null, true);
     } else {
       // Если расширение правильное, но MIME тип не распознан, все равно разрешаем
-      // (некоторые браузеры могут отправлять неправильный MIME тип для HEIC)
-      console.log('Предупреждение: MIME тип не распознан, но расширение правильное:', file.mimetype, file.originalname);
       return cb(null, true);
     }
   }
