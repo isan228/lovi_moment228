@@ -12,7 +12,7 @@
 
     <!-- Хедер с фоном -->
     <header class="header-section">
-        <video class="header-video" autoplay muted  playsinline>
+        <video class="header-video" id="mainVideo" autoplay muted loop playsinline>
             <source src="{% static 'images/mainback3.mp4' %}" type="video/mp4">
         </video>
         <!-- Внутри него фиксированный navbar -->
@@ -379,7 +379,51 @@
 //         track.scrollLeft += e.deltaY * 1.5;    // 1.5 — скорость, можно подкорректировать
 //   });
 //   ====================================================
+// Загрузка видео главной страницы
+async function loadMainVideo() {
+  try {
+    const response = await fetch('/api/main-video?t=' + Date.now()); // Добавляем timestamp для обхода кеша
+    const data = await response.json();
+    const videoElement = document.getElementById('mainVideo');
+    if (videoElement && data.videoPath) {
+      // Добавляем timestamp к URL видео для обхода кеша браузера
+      const videoUrl = data.videoPath + (data.videoPath.includes('?') ? '&' : '?') + 't=' + Date.now();
+      
+      // Полностью заменяем содержимое video элемента
+      videoElement.innerHTML = `<source src="${videoUrl}" type="video/mp4">`;
+      
+      // Убеждаемся, что все атрибуты установлены
+      videoElement.loop = true;
+      videoElement.autoplay = true;
+      videoElement.muted = true;
+      videoElement.playsInline = true;
+      
+      // Перезагружаем видео с новым источником
+      videoElement.load();
+      
+      // Пытаемся воспроизвести после загрузки
+      videoElement.addEventListener('loadeddata', () => {
+        videoElement.play().catch(err => {
+          console.log('Автовоспроизведение заблокировано браузером:', err);
+        });
+      }, { once: true });
+      
+      // Также пытаемся воспроизвести сразу (на случай если событие уже произошло)
+      setTimeout(() => {
+        videoElement.play().catch(err => {
+          console.log('Автовоспроизведение заблокировано браузером:', err);
+        });
+      }, 100);
+    }
+  } catch (error) {
+    console.error('Ошибка при загрузке видео:', error);
+    // Используем видео по умолчанию, если API недоступен
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+  // Загружаем видео главной страницы
+  loadMainVideo();
   const track      = document.getElementById('carouselTrack');
   const prevBtn    = document.getElementById('prevBtn');
   const nextBtn    = document.getElementById('nextBtn');

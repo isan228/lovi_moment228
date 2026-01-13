@@ -200,6 +200,24 @@ function processTemplate(templatePath, outputPath, baseDir) {
 
 // Функция для рекурсивного копирования
 function copyRecursive(src, dest) {
+  // Проверяем, что src существует и является директорией
+  if (!fs.existsSync(src)) {
+    return;
+  }
+  
+  const srcStat = fs.statSync(src);
+  if (!srcStat.isDirectory()) {
+    // Если это файл, просто копируем его
+    if (!fs.existsSync(dest)) {
+      const destDir = path.dirname(dest);
+      if (!fs.existsSync(destDir)) {
+        fs.mkdirSync(destDir, { recursive: true });
+      }
+      fs.copyFileSync(src, dest);
+    }
+    return;
+  }
+  
   if (!fs.existsSync(dest)) {
     fs.mkdirSync(dest, { recursive: true });
   }
@@ -213,6 +231,7 @@ function copyRecursive(src, dest) {
     const destPath = path.join(dest, normalizedName);
     const originalDestPath = path.join(dest, entry.name);
     
+    // Проверяем, что это действительно директория
     if (entry.isDirectory()) {
       // Копируем с нормализованным именем
       copyRecursive(srcPath, destPath);
