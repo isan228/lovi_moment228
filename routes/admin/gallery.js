@@ -26,14 +26,21 @@ const upload = multer({
   storage: storage,
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
   fileFilter: (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png|gif|webp/;
+    const allowedTypes = /jpeg|jpg|png|gif|webp|heic|heif/;
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
+    // HEIC может иметь разные MIME типы, поэтому проверяем и расширение, и MIME тип
+    const mimetype = allowedTypes.test(file.mimetype) || 
+                     file.mimetype === 'image/heic' || 
+                     file.mimetype === 'image/heif' ||
+                     file.mimetype.startsWith('image/');
     
     if (mimetype && extname) {
       return cb(null, true);
+    } else if (extname && file.mimetype.startsWith('image/')) {
+      // Разрешаем, если расширение правильное и это изображение
+      return cb(null, true);
     } else {
-      cb(new Error('Разрешены только изображения (jpeg, jpg, png, gif, webp)'));
+      cb(new Error('Разрешены только изображения (jpeg, jpg, png, gif, webp, heic, heif)'));
     }
   }
 });
