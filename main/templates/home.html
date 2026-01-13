@@ -597,7 +597,19 @@ document.addEventListener('DOMContentLoaded', () => {
   const track     = document.getElementById('reviewsList');
   const prevBtn   = document.getElementById('prevReview');
   const nextBtn   = document.getElementById('nextReview');
+  
+  // Проверяем существование элементов перед использованием
+  if (!track || !prevBtn || !nextBtn) {
+    return; // Выходим, если элементы не найдены
+  }
+  
   const cards     = Array.from(track.querySelectorAll('.review-card'));
+  
+  // Проверяем, что есть карточки
+  if (cards.length === 0) {
+    return; // Выходим, если нет карточек
+  }
+  
   const cardWidth = cards[0].offsetWidth;
   const gap       = parseInt(getComputedStyle(track).gap) || 0;
   const step      = cardWidth + gap;
