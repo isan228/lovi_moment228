@@ -565,21 +565,33 @@ async function loadHomeGallery() {
 
 // Загрузка видов туров для карусели
 async function loadTourTypes() {
+  console.log('=== Загрузка видов туров ===');
   try {
     const response = await fetch('/api/tour-types');
     const tourTypes = await response.json();
+    console.log('Получено видов туров из API:', tourTypes.length);
     
     const track = document.getElementById('carouselTrack');
     const dotsNav = document.getElementById('carouselDots');
     
+    console.log('Элементы карусели:', { track, dotsNav });
+    
     if (!track || !dotsNav) {
-      console.warn('Элементы карусели не найдены');
+      console.warn('Элементы карусели не найдены, пытаемся инициализировать со статическими карточками');
+      // Пытаемся инициализировать карусель со статическими карточками
+      setTimeout(() => {
+        initCarousel();
+      }, 100);
       return;
     }
     
     if (!tourTypes || tourTypes.length === 0) {
       // Если нет видов туров из API, оставляем статические
-      console.log('Нет видов туров из API, используем статические');
+      console.log('Нет видов туров из API, используем статические карточки');
+      // Инициализируем карусель со статическими карточками
+      setTimeout(() => {
+        initCarousel();
+      }, 100);
       return;
     }
     
@@ -760,12 +772,18 @@ async function loadTourTypes() {
     
     console.log('Виды туров загружены:', tourTypes.length, 'карточек');
     
-    // Инициализируем карусель после загрузки
-    initCarousel();
+    // Инициализируем карусель после загрузки (с небольшой задержкой для рендеринга DOM)
+    setTimeout(() => {
+      console.log('Вызов initCarousel() после загрузки туров');
+      initCarousel();
+    }, 100);
   } catch (error) {
     console.error('Ошибка при загрузке видов туров:', error);
     // В случае ошибки оставляем статические карточки
-    initCarousel();
+    setTimeout(() => {
+      console.log('Вызов initCarousel() после ошибки');
+      initCarousel();
+    }, 100);
   }
 }
 
@@ -862,22 +880,28 @@ function initCarousel() {
   prevBtn.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('Клик по кнопке "Назад"');
+    console.log('Клик по кнопке "Назад", текущий индекс:', currentIndex);
     if (currentIndex > 0) {
       currentIndex--;
+      console.log('Переключение на индекс:', currentIndex);
       scrollToIndex(currentIndex);
       restartAutoPlay(); // Перезапускаем автоматическое переключение
+    } else {
+      console.log('Уже на первом элементе');
     }
   });
   
   nextBtn.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('Клик по кнопке "Вперед"');
+    console.log('Клик по кнопке "Вперед", текущий индекс:', currentIndex);
     if (currentIndex < cards.length - 1) {
       currentIndex++;
+      console.log('Переключение на индекс:', currentIndex);
       scrollToIndex(currentIndex);
       restartAutoPlay(); // Перезапускаем автоматическое переключение
+    } else {
+      console.log('Уже на последнем элементе');
     }
   });
   
@@ -886,8 +910,9 @@ function initCarousel() {
     e.preventDefault();
     e.stopPropagation();
     const i = dots.indexOf(e.target);
+    console.log('Клик по точкам, индекс кликнутой точки:', i, 'текущий индекс:', currentIndex);
     if (i !== -1) {
-      console.log('Клик по точке:', i);
+      console.log('Переключение на индекс:', i);
       currentIndex = i;
       scrollToIndex(currentIndex);
       restartAutoPlay(); // Перезапускаем автоматическое переключение
@@ -905,10 +930,14 @@ function initCarousel() {
   nextBtn.addEventListener('mouseleave', startAutoPlay);
   
   // первая инициализация
+  console.log('Первая инициализация, прокрутка к индексу 0');
   scrollToIndex(0);
   
   // Запускаем автоматическое переключение
+  console.log('Запуск автопереключения');
   startAutoPlay();
+  
+  console.log('=== Инициализация карусели завершена ===');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
