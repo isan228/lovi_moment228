@@ -89,88 +89,175 @@
                     </ul>
                 </nav>
             </section>
-            <!-- Заголовок -->
-            <div class="locations-title-wrapper">
-                <h2 class="locations-title"> Индивидуальные туры</h2>
-            </div>
-            
-            <!-- Сетка карточек -->
-            <div class="locations-grid">
-            <!-- Карточка -->
-                <a href="/tour-about/" class="location-item">
-                    <img src="/static/images/location.png" alt="Локация 1">
-                    <p>Кел - Суу</p>
-                </a>
-
-                <a href="{% url 'tour_about_1' %}" class="location-item">
-                    <img src="/static/images/ala-kul2.jpg" alt="Локация 1">
-                    <p>Алтын-Арашан и Энилчек</p>
-                </a>
-
-                <a href="{% url 'tour_about_2' %}" class="location-item">
-                    <img src="/static/images/peakL.jpg" alt="Локация 1">
-                    <p>Тур в Алай юг Ош 5 дней</p>
-                </a>
-
-                <a href="{% url 'tour_about_3' %}" class="location-item">
-                    <img src="/static/images/gory2.jpg" alt="Локация 1">
-                    <p>Легенды под небом Кыргызстана</p>
-                </a>
-
-                <a href="{% url 'tour_about_12' %}" class="location-item">
-                    <img src="/static/images/jo2.jpg" alt="Локация 1">
-                    <p>Путь к Сердцу Кыргызстана</p>
-                </a>
-
-                <a href="{% url 'tour_about_4' %}" class="location-item">
-                    <img src="/static/images/kolsu2.jpg" alt="Локация 1">
-                    <p>Тур на 10 дней</p>
-                </a>
-            </div>
-            <div class="locations-title-wrapper">
-                <h2 class="locations-title"> Групповые туры</h2>
-            </div>
-             <div class="locations-grid">
-            <!-- Карточка -->
-                
-
-                <a href="{% url 'tour_about_5' %}" class="location-item">
-                    <img src="/static/images/saryJ1.jpg" alt="Локация 1">
-                    <p>Энилчек 3 дня</p>
-                </a>
-
-                <a href="{% url 'tour_about_6' %}" class="location-item">
-                    <img src="/static/images/altyn2.jpg" alt="Локация 1">
-                    <p>Алтын-Арашан 2 дня 1 ночь</p>
-                </a>
-
-                <a href="{% url 'tour_about_7' %}" class="location-item">
-                    <img src="/static/images/location.png" alt="Локация 1">
-                    <p>Кел-Суу 3 дня и 3 ночи</p>
-                </a>
-
-                <a href="{% url 'tour_about_8' %}" class="location-item">
-                    <img src="/static/images/sonK7.jpg" alt="Локация 1">
-                    <p>Сон-Куль 2 дня 1 ночь</p>
-                </a>
-
-                <a href="{% url 'tour_about_9' %}" class="location-item">
-                    <img src="/static/images/chelek1.jpg" alt="Локация 1">
-                    <p>В сердце Сары-Челека</p>
-                </a>
-
-                <a href="{% url 'tour_about_10' %}" class="location-item">
-                    <img src="/static/images/ysyk1.webp" alt="Локация 1">
-                    <p>ИК 2 дня и 1 ночь</p>
-                </a>
-
-                <a href="{% url 'tour_about_11' %}" class="location-item">
-                    <img src="/static/images/zim1.jpg" alt="Локация 1">
-                    <p>ГБ Каракол 3 дня</p>
-                </a>
+            <!-- Контент будет загружен динамически -->
+            <div id="toursContent">
+                <!-- Секции туров будут добавлены здесь -->
             </div>
         </div>
     </section>
+    
+    <script>
+    // Определяем текущую страну из URL или навигации
+    function getCurrentCountry() {
+        // Проверяем активную ссылку в навигации
+        const activeLink = document.querySelector('.gallery-nav__link--active');
+        if (activeLink) {
+            const text = activeLink.textContent.trim();
+            if (text === 'Кыргызстан') return 'Кыргызстан';
+            if (text === 'Казахстан') return 'Казахстан';
+            if (text === 'Узбекистан') return 'Узбекистан';
+        }
+        // По умолчанию Кыргызстан
+        return 'Кыргызстан';
+    }
+    
+    // Загрузка туров
+    async function loadTours() {
+        try {
+            const response = await fetch('/api/tours');
+            const tours = await response.json();
+            console.log('Загружено туров:', tours.length);
+            
+            const currentCountry = getCurrentCountry();
+            console.log('Текущая страна:', currentCountry);
+            
+            // Фильтруем туры по текущей стране и активности
+            const filteredTours = tours.filter(tour => 
+                tour.isActive && 
+                tour.country === currentCountry
+            );
+            
+            console.log('Отфильтровано туров для', currentCountry + ':', filteredTours.length);
+            
+            // Группируем туры по видам туров
+            const toursByType = {};
+            filteredTours.forEach(tour => {
+                const tourTypeName = tour.tourType ? tour.tourType.name : 'Без категории';
+                if (!toursByType[tourTypeName]) {
+                    toursByType[tourTypeName] = [];
+                }
+                toursByType[tourTypeName].push(tour);
+            });
+            
+            console.log('Туры по видам:', toursByType);
+            
+            // Отображаем туры
+            displayTours(toursByType);
+            
+        } catch (error) {
+            console.error('Ошибка при загрузке туров:', error);
+        }
+    }
+    
+    // Отображение туров
+    function displayTours(toursByType) {
+        const container = document.getElementById('toursContent');
+        if (!container) {
+            console.error('Контейнер toursContent не найден');
+            return;
+        }
+        
+        container.innerHTML = '';
+        
+        // Сортируем виды туров (Индивидуальные, Групповые, Корпоративные и т.д.)
+        const sortedTypes = Object.keys(toursByType).sort((a, b) => {
+            const order = ['Индивидуальные туры', 'Групповые туры', 'Корпоративные туры'];
+            const indexA = order.indexOf(a);
+            const indexB = order.indexOf(b);
+            if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+            if (indexA !== -1) return -1;
+            if (indexB !== -1) return 1;
+            return a.localeCompare(b);
+        });
+        
+        sortedTypes.forEach(tourTypeName => {
+            const tours = toursByType[tourTypeName];
+            
+            // Создаем секцию для вида тура
+            const section = document.createElement('div');
+            section.className = 'tour-type-section';
+            
+            // Заголовок
+            const titleWrapper = document.createElement('div');
+            titleWrapper.className = 'locations-title-wrapper';
+            const title = document.createElement('h2');
+            title.className = 'locations-title';
+            title.textContent = tourTypeName;
+            titleWrapper.appendChild(title);
+            section.appendChild(titleWrapper);
+            
+            // Сетка карточек
+            const grid = document.createElement('div');
+            grid.className = 'locations-grid';
+            
+            tours.forEach(tour => {
+                const card = document.createElement('a');
+                card.href = `/tour-about/${tour.slug || tour.id}`;
+                card.className = 'location-item';
+                
+                // Изображение
+                const img = document.createElement('img');
+                img.src = tour.headerImage || tour.images?.[0]?.imagePath || '/static/images/location.png';
+                img.alt = tour.title || 'Тур';
+                card.appendChild(img);
+                
+                // Название
+                const title = document.createElement('p');
+                title.textContent = tour.title || 'Тур';
+                card.appendChild(title);
+                
+                grid.appendChild(card);
+            });
+            
+            section.appendChild(grid);
+            container.appendChild(section);
+        });
+        
+        // Если нет туров, показываем сообщение
+        if (sortedTypes.length === 0) {
+            container.innerHTML = '<div style="text-align: center; padding: 40px;"><p>Туры для этой страны пока не добавлены</p></div>';
+        }
+    }
+    
+    // Загружаем туры при загрузке страницы
+    document.addEventListener('DOMContentLoaded', () => {
+        loadTours();
+        
+        // Обновляем туры при переключении страны
+        const countryLinks = document.querySelectorAll('.gallery-nav__link');
+        countryLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                // Убираем активный класс со всех ссылок
+                countryLinks.forEach(l => l.classList.remove('gallery-nav__link--active'));
+                
+                // Добавляем активный класс к текущей ссылке
+                link.classList.add('gallery-nav__link--active');
+                
+                // Обновляем заголовок страницы
+                const countryName = link.textContent.trim();
+                const bigTitle = document.querySelector('.big-kg');
+                if (bigTitle) {
+                    bigTitle.textContent = countryName.toUpperCase();
+                }
+                
+                // Обновляем хлебные крошки
+                const breadcrumb = document.querySelector('.tour-gps');
+                if (breadcrumb) {
+                    const links = breadcrumb.querySelectorAll('a');
+                    if (links.length >= 3) {
+                        links[2].textContent = countryName;
+                    }
+                }
+                
+                // Перезагружаем туры
+                loadTours();
+            });
+        });
+    });
+    </script>
+    
 <footer class="footer">
             <div class="footer-inner">
                 <div class="footer-col logo-col">
