@@ -1137,54 +1137,56 @@ function updateTourProgram(tour) {
   }, 100);
 }
 
-// Инициализация карусели программы
+// Инициализация карусели программы (как в старой версии)
 function initProgramCarousel() {
+  const track = document.querySelector('.program-carousel__track');
+  if (!track) return;
+  
+  const slides = Array.from(track.querySelectorAll('.program-carousel__slide'));
   const days = Array.from(document.querySelectorAll('.program-nav__day'));
-  const slides = Array.from(document.querySelectorAll('.program-carousel__slide'));
   const prev = document.querySelector('.program-carousel__arrow.prev');
   const next = document.querySelector('.program-carousel__arrow.next');
   
-  if (!days.length || !slides.length || !prev || !next) return;
+  if (!days.length || !slides.length) return;
   
   let current = 0;
   
-  function update() {
-    days.forEach((btn, i) => {
+  function goTo(index) {
+    if (index < 0) index = slides.length - 1;
+    if (index >= slides.length) index = 0;
+    current = index;
+    
+    slides.forEach((slide, i) => {
+      slide.classList.toggle('active', i === current);
+    });
+    
+    days.forEach((btn) => {
       const dayIndex = parseInt(btn.getAttribute('data-day'));
-      const daySlides = slides.filter(s => parseInt(s.getAttribute('data-day')) === dayIndex);
-      const isActive = daySlides.some(s => s.classList.contains('active'));
-      btn.classList.toggle('active', isActive);
+      const slideDayIndex = parseInt(slides[current].getAttribute('data-day'));
+      btn.classList.toggle('active', dayIndex === slideDayIndex);
     });
   }
   
-  days.forEach((btn, i) => {
+  days.forEach((btn) => {
     btn.addEventListener('click', () => {
       const dayIndex = parseInt(btn.getAttribute('data-day'));
-      const daySlides = slides.filter(s => parseInt(s.getAttribute('data-day')) === dayIndex);
-      if (daySlides.length > 0) {
-        slides.forEach(s => s.classList.remove('active'));
-        daySlides[0].classList.add('active');
-        current = slides.indexOf(daySlides[0]);
-        update();
+      const slideIndex = slides.findIndex(s => parseInt(s.getAttribute('data-day')) === dayIndex);
+      if (slideIndex !== -1) {
+        goTo(slideIndex);
       }
     });
   });
   
-  prev.addEventListener('click', () => {
-    current = (current - 1 + slides.length) % slides.length;
-    slides.forEach(s => s.classList.remove('active'));
-    slides[current].classList.add('active');
-    update();
-  });
+  if (prev) {
+    prev.addEventListener('click', () => goTo(current - 1));
+  }
   
-  next.addEventListener('click', () => {
-    current = (current + 1) % slides.length;
-    slides.forEach(s => s.classList.remove('active'));
-    slides[current].classList.add('active');
-    update();
-  });
+  if (next) {
+    next.addEventListener('click', () => goTo(current + 1));
+  }
   
-  update();
+  // Инициализация
+  goTo(0);
 }
 
 // Обновление важной информации и FAQ
