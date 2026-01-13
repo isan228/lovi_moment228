@@ -563,6 +563,209 @@ async function loadHomeGallery() {
   }
 }
 
+// Загрузка видов туров для карусели
+async function loadTourTypes() {
+  try {
+    const response = await fetch('/api/tour-types');
+    const tourTypes = await response.json();
+    
+    const track = document.getElementById('carouselTrack');
+    const dotsNav = document.getElementById('carouselDots');
+    
+    if (!track || !dotsNav) {
+      console.warn('Элементы карусели не найдены');
+      return;
+    }
+    
+    if (!tourTypes || tourTypes.length === 0) {
+      // Если нет видов туров из API, оставляем статические
+      console.log('Нет видов туров из API, используем статические');
+      return;
+    }
+    
+    // Очищаем существующие карточки и точки
+    track.innerHTML = '';
+    dotsNav.innerHTML = '';
+    
+    // Функция для форматирования даты
+    const formatDate = (dateStr) => {
+      if (!dateStr) return { day: '', month: '' };
+      try {
+        const date = new Date(dateStr);
+        const months = ['янв', 'фев', 'мар', 'апр', 'мая', 'июня', 'июля', 'авг', 'сент', 'окт', 'ноя', 'дек'];
+        return {
+          day: date.getDate().toString(),
+          month: months[date.getMonth()]
+        };
+      } catch (e) {
+        return { day: '', month: '' };
+      }
+    };
+    
+    // Создаем карточки для каждого вида тура
+    tourTypes.forEach((tourType, index) => {
+      // Создаем карточку тура
+      const card = document.createElement('div');
+      card.className = 'tour-card';
+      if (index === tourTypes.length - 1) {
+        card.id = 'last-tour-card';
+      }
+      
+      // Устанавливаем фоновое изображение
+      const imagePath = tourType.imagePath || '/static/images/Rectangle 19.png';
+      card.style.backgroundImage = `url('${imagePath}')`;
+      
+      // Заголовок
+      const title = document.createElement('div');
+      title.className = 'tour-title';
+      title.textContent = tourType.name || 'Тур';
+      card.appendChild(title);
+      
+      // Даты
+      const datesDiv = document.createElement('div');
+      datesDiv.className = 'tour-dates';
+      
+      // Обрабатываем даты из JSON поля dates
+      let dates = [];
+      if (tourType.dates) {
+        if (typeof tourType.dates === 'string') {
+          try {
+            dates = JSON.parse(tourType.dates);
+          } catch (e) {
+            dates = [];
+          }
+        } else if (Array.isArray(tourType.dates)) {
+          dates = tourType.dates;
+        }
+      }
+      
+      // Если дат нет, используем дефолтные
+      if (dates.length === 0) {
+        dates = ['2024-07-12', '2024-08-18', '2024-09-02'];
+      }
+      
+      // Ограничиваем до 3 дат
+      dates.slice(0, 3).forEach(dateStr => {
+        const date = formatDate(dateStr);
+        const dateItem = document.createElement('div');
+        dateItem.innerHTML = `<span>${date.day}</span><small>${date.month}</small>`;
+        datesDiv.appendChild(dateItem);
+      });
+      
+      card.appendChild(datesDiv);
+      
+      // Кнопка
+      const link = document.createElement('a');
+      link.href = '/tour/';
+      link.style.textDecoration = 'none';
+      
+      const button = document.createElement('button');
+      button.className = 'tour-btn';
+      button.innerHTML = 'Записаться на тур! <img src="/static/images/Vector 11.png" alt="→" />';
+      link.appendChild(button);
+      card.appendChild(link);
+      
+      track.appendChild(card);
+      
+      // Создаем точку для навигации
+      const dot = document.createElement('div');
+      dot.className = 'dot';
+      if (index === 0) {
+        dot.classList.add('current-dot');
+      }
+      dotsNav.appendChild(dot);
+    });
+    
+    console.log('Виды туров загружены:', tourTypes.length, 'карточек');
+    
+    // Инициализируем карусель после загрузки
+    initCarousel();
+  } catch (error) {
+    console.error('Ошибка при загрузке видов туров:', error);
+    // В случае ошибки оставляем статические карточки
+    initCarousel();
+  }
+}
+
+// Инициализация карусели
+function initCarousel() {
+  const track = document.getElementById('carouselTrack');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const dotsNav = document.getElementById('carouselDots');
+  
+  if (!track || !prevBtn || !nextBtn || !dotsNav) {
+    return;
+  }
+  
+  const cards = Array.from(track.querySelectorAll('.tour-card'));
+  const dots = Array.from(dotsNav.querySelectorAll('.dot'));
+  let currentIndex = 0;
+  
+  if (cards.length === 0) {
+    return;
+  }
+  
+  function scrollToIndex(index) {
+    const card = cards[index];
+    const trackWidth = track.clientWidth;
+    const cardWidth = card.offsetWidth;
+    const cardOffset = card.offsetLeft;
+    
+    // хотим центрировать:
+    let scrollLeft = cardOffset - (trackWidth - cardWidth) / 2;
+    
+    // clamp: не выходить за границы
+    const maxScroll = track.scrollWidth - trackWidth;
+    scrollLeft = Math.max(0, Math.min(scrollLeft, maxScroll));
+    
+    track.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+    
+    // обновляем вид стрелок и точек
+    updateButtons();
+    updateDots();
+  }
+  
+  function updateButtons() {
+    prevBtn.style.visibility = (currentIndex === 0) ? 'hidden' : 'visible';
+    nextBtn.style.visibility = (currentIndex === cards.length - 1) ? 'hidden' : 'visible';
+  }
+  
+  function updateDots() {
+    dots.forEach(dot => dot.classList.remove('current-dot'));
+    if (dots[currentIndex]) {
+      dots[currentIndex].classList.add('current-dot');
+    }
+  }
+  
+  // клики по стрелкам
+  prevBtn.onclick = () => {
+    if (currentIndex > 0) {
+      currentIndex--;
+      scrollToIndex(currentIndex);
+    }
+  };
+  
+  nextBtn.onclick = () => {
+    if (currentIndex < cards.length - 1) {
+      currentIndex++;
+      scrollToIndex(currentIndex);
+    }
+  };
+  
+  // клики по точкам
+  dotsNav.onclick = (e) => {
+    const i = dots.indexOf(e.target);
+    if (i !== -1) {
+      currentIndex = i;
+      scrollToIndex(currentIndex);
+    }
+  };
+  
+  // первая инициализация
+  scrollToIndex(0);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   // Загружаем видео главной страницы
   loadMainVideo();
@@ -570,19 +773,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // Загружаем галерею
   loadHomeGallery();
   
+  // Загружаем виды туров
+  loadTourTypes();
+  
   // Периодически проверяем обновление видео (каждые 30 секунд)
   // Это нужно, если видео было обновлено через админ-панель, пока страница открыта
   setInterval(() => {
     loadMainVideo();
   }, 30000); // Проверяем каждые 30 секунд
-  
-  const track      = document.getElementById('carouselTrack');
-  const prevBtn    = document.getElementById('prevBtn');
-  const nextBtn    = document.getElementById('nextBtn');
-  const dotsNav    = document.getElementById('carouselDots');
-  const cards      = Array.from(track.querySelectorAll('.tour-card'));
-  const dots       = Array.from(dotsNav.querySelectorAll('.dot'));
-  let currentIndex = 0;
 
   function scrollToIndex(index) {
     const card       = cards[index];
