@@ -78,6 +78,23 @@ async function up() {
     );
   `);
 
+  // Создаем таблицу заявок на туры
+  await sequelize.query(`
+    CREATE TABLE IF NOT EXISTS tour_applications (
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      phone VARCHAR(255) NOT NULL,
+      email VARCHAR(255),
+      "tourId" INTEGER REFERENCES tours(id) ON DELETE SET NULL,
+      "tourTitle" VARCHAR(255),
+      status VARCHAR(20) DEFAULT 'new' CHECK (status IN ('new', 'contacted', 'confirmed', 'cancelled')),
+      notes TEXT,
+      consent BOOLEAN DEFAULT false NOT NULL,
+      "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+      "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
   console.log('✅ Таблицы созданы успешно');
 }
 

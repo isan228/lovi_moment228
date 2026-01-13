@@ -259,6 +259,8 @@
             <button class="tab" onclick="switchTab('gallery')">Галерея</button>
             <button class="tab" onclick="switchTab('reviews')">Отзывы</button>
             <button class="tab" onclick="switchTab('blogs')">Блоги</button>
+            <button class="tab" onclick="switchTab('applications')">Заявки</button>
+            <button class="tab" onclick="switchTab('stats')">Статистика</button>
             <button class="tab" onclick="switchTab('settings')">Настройки</button>
         </div>
         
@@ -325,6 +327,26 @@
                     <button class="btn btn-success" onclick="showBlogForm()">+ Добавить блог</button>
                 </div>
                 <div id="blogsList" class="loading">Загрузка...</div>
+            </div>
+        </div>
+        
+        <!-- Заявки -->
+        <div id="applications" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Заявки на туры</h2>
+                </div>
+                <div id="applicationsList" class="loading">Загрузка...</div>
+            </div>
+        </div>
+        
+        <!-- Статистика -->
+        <div id="stats" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Статистика</h2>
+                </div>
+                <div id="statsContent" class="loading">Загрузка...</div>
             </div>
         </div>
         

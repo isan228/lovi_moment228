@@ -210,7 +210,7 @@ app.get('/api/stats', async (req, res) => {
 // Обработка формы заявки на тур
 app.post('/submit-application', async (req, res) => {
   try {
-    const { name, phone, email, consent } = req.body;
+    const { name, phone, email, consent, tourId, tourTitle } = req.body;
 
     // Валидация
     if (!name || !phone || !consent) {
@@ -220,7 +220,29 @@ app.post('/submit-application', async (req, res) => {
       });
     }
 
-    // Формирование сообщения
+    // Сохраняем заявку в базу данных
+    const { TourApplication, Tour } = require('./models');
+    
+    let tourTitleValue = tourTitle;
+    // Если передан tourId, получаем название тура из БД
+    if (tourId && !tourTitle) {
+      const tour = await Tour.findByPk(tourId);
+      if (tour) {
+        tourTitleValue = tour.title;
+      }
+    }
+    
+    const application = await TourApplication.create({
+      name,
+      phone,
+      email: email || null,
+      tourId: tourId || null,
+      tourTitle: tourTitleValue || null,
+      consent: consent === 'on' || consent === true || consent === 'true',
+      status: 'new'
+    });
+
+    // Формирование сообщения для email
     const mailOptions = {
       from: process.env.EMAIL_USER || 'lovimoment312@gmail.com',
       to: process.env.RECIPIENT_EMAIL || 'nuremirtopoev08@gmail.com',
@@ -230,17 +252,20 @@ app.post('/submit-application', async (req, res) => {
         <p><strong>Имя:</strong> ${name}</p>
         <p><strong>Телефон:</strong> ${phone}</p>
         ${email ? `<p><strong>Email:</strong> ${email}</p>` : ''}
+        ${tourTitleValue ? `<p><strong>Тур:</strong> ${tourTitleValue}</p>` : ''}
         <p><strong>Согласие на обработку данных:</strong> ${consent === 'on' || consent === true ? 'Да' : 'Нет'}</p>
         <p><strong>Дата:</strong> ${new Date().toLocaleString('ru-RU')}</p>
       `
     };
 
-    // Отправка email
-    await transporter.sendMail(mailOptions);
+    // Отправка email (не блокируем ответ, если email не отправится)
+    transporter.sendMail(mailOptions).catch(err => {
+      console.error('Ошибка при отправке email:', err);
+    });
 
-    res.json({ status: 'ok' });
+    res.json({ status: 'ok', id: application.id });
   } catch (error) {
-    console.error('Ошибка при отправке заявки:', error);
+    console.error('Ошибка при сохранении заявки:', error);
     res.status(500).json({
       status: 'error',
       error: 'Произошла ошибка при отправке заявки. Попробуйте позже.'

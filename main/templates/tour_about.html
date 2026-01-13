@@ -710,9 +710,22 @@ document.addEventListener('DOMContentLoaded', () => {
     form.addEventListener('submit', e => {
       e.preventDefault();
       const data = new FormData(form);
+      
+      // Добавляем информацию о туре из загруженных данных
+      const tourTitle = document.getElementById('tourTitle');
+      if (tourTitle && tourTitle.textContent && tourTitle.textContent !== 'Загрузка...') {
+        data.append('tourTitle', tourTitle.textContent);
+      }
+      
+      // Получаем tourId из URL или из загруженных данных
+      const path = window.location.pathname;
+      const slug = path.split('/').filter(p => p).pop();
+      if (slug && !isNaN(slug)) {
+        data.append('tourId', slug);
+      }
 
-      fetch(form.action, {
-        method: form.method,
+      fetch('/submit-application', {
+        method: 'POST',
         body: data,
         credentials: 'same-origin'
       })

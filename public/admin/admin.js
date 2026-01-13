@@ -84,6 +84,10 @@ function switchTab(tabName) {
         loadReviews();
     } else if (tabName === 'blogs') {
         loadBlogs();
+    } else if (tabName === 'applications') {
+        loadApplications();
+    } else if (tabName === 'stats') {
+        loadStats();
     } else if (tabName === 'settings') {
         loadSettings();
     }
@@ -1949,6 +1953,229 @@ async function deleteReview(id) {
         loadReviews();
     } catch (error) {
         alert('Ошибка при удалении');
+    }
+}
+
+// ========== ЗАЯВКИ ==========
+async function loadApplications() {
+    try {
+        const response = await apiFetch('/api/admin/applications');
+        const data = await response.json();
+        
+        const list = document.getElementById('applicationsList');
+        if (!data.applications || data.applications.length === 0) {
+            list.innerHTML = '<p>Нет заявок</p>';
+            return;
+        }
+        
+        const statusColors = {
+            'new': '#28a745',
+            'contacted': '#ffc107',
+            'confirmed': '#17a2b8',
+            'cancelled': '#dc3545'
+        };
+        
+        const statusNames = {
+            'new': 'Новая',
+            'contacted': 'Связались',
+            'confirmed': 'Подтверждена',
+            'cancelled': 'Отменена'
+        };
+        
+        let html = `
+            <div style="margin-bottom: 20px;">
+                <strong>Всего заявок:</strong> ${data.total || data.applications.length}
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Дата</th>
+                        <th>Имя</th>
+                        <th>Телефон</th>
+                        <th>Email</th>
+                        <th>Тур</th>
+                        <th>Статус</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+        
+        data.applications.forEach(app => {
+            const date = new Date(app.createdAt).toLocaleString('ru-RU');
+            const statusColor = statusColors[app.status] || '#666';
+            const statusName = statusNames[app.status] || app.status;
+            
+            html += `
+                <tr>
+                    <td>${date}</td>
+                    <td>${app.name}</td>
+                    <td><a href="tel:${app.phone}">${app.phone}</a></td>
+                    <td>${app.email || '-'}</td>
+                    <td>${app.tourTitle || app.tour?.title || '-'}</td>
+                    <td>
+                        <span style="padding: 4px 8px; border-radius: 4px; background: ${statusColor}; color: white; font-size: 12px;">
+                            ${statusName}
+                        </span>
+                    </td>
+                    <td>
+                        <select onchange="updateApplicationStatus(${app.id}, this.value)" style="padding: 4px; margin-right: 5px;">
+                            <option value="new" ${app.status === 'new' ? 'selected' : ''}>Новая</option>
+                            <option value="contacted" ${app.status === 'contacted' ? 'selected' : ''}>Связались</option>
+                            <option value="confirmed" ${app.status === 'confirmed' ? 'selected' : ''}>Подтверждена</option>
+                            <option value="cancelled" ${app.status === 'cancelled' ? 'selected' : ''}>Отменена</option>
+                        </select>
+                        <button class="btn btn-danger" onclick="deleteApplication(${app.id})" style="padding: 4px 8px; font-size: 12px;">Удалить</button>
+                    </td>
+                </tr>
+            `;
+        });
+        
+        html += `
+                </tbody>
+            </table>
+        `;
+        
+        list.innerHTML = html;
+    } catch (error) {
+        console.error('Ошибка при загрузке заявок:', error);
+        document.getElementById('applicationsList').innerHTML = '<p>Ошибка при загрузке заявок</p>';
+    }
+}
+
+async function updateApplicationStatus(id, status) {
+    try {
+        const response = await apiFetch(`/api/admin/applications/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify({ status })
+        });
+        
+        if (response.ok) {
+            loadApplications();
+        } else {
+            alert('Ошибка при обновлении статуса');
+        }
+    } catch (error) {
+        console.error('Ошибка при обновлении статуса:', error);
+        alert('Ошибка при обновлении статуса');
+    }
+}
+
+async function deleteApplication(id) {
+    if (!confirm('Удалить заявку?')) return;
+    try {
+        const response = await apiFetch(`/api/admin/applications/${id}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            loadApplications();
+        } else {
+            alert('Ошибка при удалении заявки');
+        }
+    } catch (error) {
+        console.error('Ошибка при удалении заявки:', error);
+        alert('Ошибка при удалении заявки');
+    }
+}
+
+// ========== СТАТИСТИКА ==========
+async function loadStats() {
+    try {
+        const [toursResponse, applicationsResponse, statsResponse] = await Promise.all([
+            apiFetch('/api/admin/tours'),
+            apiFetch('/api/admin/applications/stats/summary'),
+            apiFetch('/api/stats')
+        ]);
+        
+        const tours = await toursResponse.json();
+        const applicationsStats = await applicationsResponse.json();
+        const publicStats = await statsResponse.json();
+        
+        const statsContent = document.getElementById('statsContent');
+        
+        // Статистика туров
+        const activeTours = tours.filter(t => t.isActive).length;
+        const inactiveTours = tours.length - activeTours;
+        const toursByCountry = {};
+        tours.forEach(tour => {
+            const country = tour.country || 'Не указана';
+            toursByCountry[country] = (toursByCountry[country] || 0) + 1;
+        });
+        
+        let countryStatsHtml = '';
+        Object.keys(toursByCountry).forEach(country => {
+            countryStatsHtml += `<div style="margin: 10px 0;"><strong>${country}:</strong> ${toursByCountry[country]} туров</div>`;
+        });
+        
+        // Статистика заявок
+        const appStatsHtml = `
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px;">
+                <div style="background: #28a745; color: white; padding: 20px; border-radius: 8px;">
+                    <div style="font-size: 32px; font-weight: bold;">${applicationsStats.total || 0}</div>
+                    <div>Всего заявок</div>
+                </div>
+                <div style="background: #17a2b8; color: white; padding: 20px; border-radius: 8px;">
+                    <div style="font-size: 32px; font-weight: bold;">${applicationsStats.new || 0}</div>
+                    <div>Новых заявок</div>
+                </div>
+                <div style="background: #ffc107; color: white; padding: 20px; border-radius: 8px;">
+                    <div style="font-size: 32px; font-weight: bold;">${applicationsStats.contacted || 0}</div>
+                    <div>Связались</div>
+                </div>
+                <div style="background: #28a745; color: white; padding: 20px; border-radius: 8px;">
+                    <div style="font-size: 32px; font-weight: bold;">${applicationsStats.confirmed || 0}</div>
+                    <div>Подтверждено</div>
+                </div>
+                <div style="background: #dc3545; color: white; padding: 20px; border-radius: 8px;">
+                    <div style="font-size: 32px; font-weight: bold;">${applicationsStats.recent || 0}</div>
+                    <div>За последние 30 дней</div>
+                </div>
+            </div>
+        `;
+        
+        statsContent.innerHTML = `
+            <h3 style="margin-bottom: 20px;">Статистика туров</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px;">
+                <div style="background: #667eea; color: white; padding: 20px; border-radius: 8px;">
+                    <div style="font-size: 32px; font-weight: bold;">${tours.length}</div>
+                    <div>Всего туров</div>
+                </div>
+                <div style="background: #28a745; color: white; padding: 20px; border-radius: 8px;">
+                    <div style="font-size: 32px; font-weight: bold;">${activeTours}</div>
+                    <div>Активных туров</div>
+                </div>
+                <div style="background: #6c757d; color: white; padding: 20px; border-radius: 8px;">
+                    <div style="font-size: 32px; font-weight: bold;">${inactiveTours}</div>
+                    <div>Неактивных туров</div>
+                </div>
+            </div>
+            
+            <h3 style="margin-bottom: 20px;">Туры по странам</h3>
+            ${countryStatsHtml}
+            
+            <h3 style="margin-bottom: 20px; margin-top: 30px;">Статистика заявок</h3>
+            ${appStatsHtml}
+            
+            <h3 style="margin-bottom: 20px; margin-top: 30px;">Публичная статистика</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                <div style="background: #667eea; color: white; padding: 20px; border-radius: 8px;">
+                    <div style="font-size: 32px; font-weight: bold;">${publicStats.tours || '140'}</div>
+                    <div>Туров (публично)</div>
+                </div>
+                <div style="background: #764ba2; color: white; padding: 20px; border-radius: 8px;">
+                    <div style="font-size: 32px; font-weight: bold;">${publicStats.tourists || '16 500+'}</div>
+                    <div>Туристов (публично)</div>
+                </div>
+                <div style="background: #f093fb; color: white; padding: 20px; border-radius: 8px;">
+                    <div style="font-size: 32px; font-weight: bold;">${publicStats.experience || '5 лет'}</div>
+                    <div>Опыт (публично)</div>
+                </div>
+            </div>
+        `;
+    } catch (error) {
+        console.error('Ошибка при загрузке статистики:', error);
+        document.getElementById('statsContent').innerHTML = '<p>Ошибка при загрузке статистики</p>';
     }
 }
 

@@ -1088,8 +1088,10 @@ document.addEventListener('DOMContentLoaded', () => {
   form.addEventListener('submit', e => {
     e.preventDefault();
     const data = new FormData(form);
+    
+    // На главной странице tourId и tourTitle не передаем (общая заявка)
 
-    fetch(form.action, {
+    fetch('/submit-application', {
       method: form.method,
       body: data,
       credentials: 'same-origin'

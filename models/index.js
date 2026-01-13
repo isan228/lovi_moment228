@@ -8,6 +8,7 @@ const Country = require('./Country');
 const Settings = require('./Settings');
 const Review = require('./Review');
 const Blog = require('./Blog');
+const TourApplication = require('./TourApplication');
 
 // Определяем связи между моделями
 Tour.belongsTo(TourType, { foreignKey: 'tourTypeId', as: 'tourType' });
@@ -47,6 +48,10 @@ async function syncDatabase(options = {}) {
   }
 }
 
+// Связь заявок с турами
+TourApplication.belongsTo(Tour, { foreignKey: 'tourId', as: 'tour' });
+Tour.hasMany(TourApplication, { foreignKey: 'tourId', as: 'applications' });
+
 module.exports = {
   sequelize,
   User,
@@ -58,6 +63,7 @@ module.exports = {
   Settings,
   Review,
   Blog,
+  TourApplication,
   syncDatabase
 };
 

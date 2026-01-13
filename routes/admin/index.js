@@ -30,6 +30,7 @@ router.use('/gallery', require('./gallery'));
 router.use('/settings', require('./settings'));
 router.use('/reviews', require('./reviews'));
 router.use('/blogs', require('./blogs'));
+router.use('/applications', require('./applications'));
 
 // Раздача статических файлов админ-панели (admin.js и другие)
 // Должно быть ПОСЛЕ всех API роутов, чтобы не перехватывать их
