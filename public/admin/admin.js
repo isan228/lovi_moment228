@@ -624,6 +624,14 @@ function showTourForm(tourId = null) {
         
         document.getElementById('toursList').innerHTML = form;
         
+        // Инициализируем сводку дат
+        setTimeout(() => {
+            const summary = document.getElementById('tourDatesSummary');
+            if (summary) {
+                summary.textContent = 'Даты не выбраны';
+            }
+        }, 100);
+        
         // Данные для дат по месяцам (хранятся в памяти)
         let datesByMonthData = [];
         
@@ -675,6 +683,7 @@ function showTourForm(tourId = null) {
                 `;
             }).join('');
             
+            console.log('Показ модального окна');
             modal.style.display = 'block';
         }
         
@@ -724,32 +733,61 @@ function showTourForm(tourId = null) {
             }
         }
         
-        // Обработчики для модального окна
-        const openDatesModalBtn = document.getElementById('openDatesModalBtn');
-        const closeDatesModalBtn = document.getElementById('closeDatesModalBtn');
-        const saveDatesBtn = document.getElementById('saveDatesBtn');
-        const cancelDatesBtn = document.getElementById('cancelDatesBtn');
-        const datesModal = document.getElementById('datesModal');
-        
-        if (openDatesModalBtn) {
-            openDatesModalBtn.addEventListener('click', openDatesModal);
-        }
-        if (closeDatesModalBtn) {
-            closeDatesModalBtn.addEventListener('click', closeDatesModal);
-        }
-        if (saveDatesBtn) {
-            saveDatesBtn.addEventListener('click', saveDates);
-        }
-        if (cancelDatesBtn) {
-            cancelDatesBtn.addEventListener('click', closeDatesModal);
-        }
-        if (datesModal) {
-            datesModal.addEventListener('click', (e) => {
-                if (e.target === datesModal) {
-                    closeDatesModal();
-                }
+        // Обработчики для модального окна (привязываем после небольшой задержки, чтобы элементы точно были в DOM)
+        setTimeout(() => {
+            const openDatesModalBtn = document.getElementById('openDatesModalBtn');
+            const closeDatesModalBtn = document.getElementById('closeDatesModalBtn');
+            const saveDatesBtn = document.getElementById('saveDatesBtn');
+            const cancelDatesBtn = document.getElementById('cancelDatesBtn');
+            const datesModal = document.getElementById('datesModal');
+            
+            console.log('Инициализация обработчиков модального окна:', {
+                openDatesModalBtn: !!openDatesModalBtn,
+                closeDatesModalBtn: !!closeDatesModalBtn,
+                saveDatesBtn: !!saveDatesBtn,
+                cancelDatesBtn: !!cancelDatesBtn,
+                datesModal: !!datesModal
             });
-        }
+            
+            if (openDatesModalBtn) {
+                openDatesModalBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Клик по кнопке открытия модального окна');
+                    openDatesModal();
+                });
+            } else {
+                console.error('Кнопка openDatesModalBtn не найдена!');
+            }
+            if (closeDatesModalBtn) {
+                closeDatesModalBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    closeDatesModal();
+                });
+            }
+            if (saveDatesBtn) {
+                saveDatesBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    saveDates();
+                });
+            }
+            if (cancelDatesBtn) {
+                cancelDatesBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    closeDatesModal();
+                });
+            }
+            if (datesModal) {
+                datesModal.addEventListener('click', (e) => {
+                    if (e.target === datesModal) {
+                        closeDatesModal();
+                    }
+                });
+            }
+        }, 100);
         
         // Функция для добавления дня недели с ценой
         function addPriceDay(day = '', price = '') {
