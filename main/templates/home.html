@@ -659,40 +659,74 @@ async function loadTourTypes() {
       datesDiv.className = 'tour-dates';
       
       // Обрабатываем даты из JSON поля dates
+      console.log('=== Обработка дат для тура:', tourType.name, '===');
+      console.log('tourType.dates (исходное значение):', tourType.dates);
+      console.log('Тип tourType.dates:', typeof tourType.dates);
+      
       let dates = [];
       if (tourType.dates) {
         if (typeof tourType.dates === 'string') {
           try {
             dates = JSON.parse(tourType.dates);
+            console.log('Даты после парсинга из строки:', dates);
           } catch (e) {
             console.warn('Ошибка при парсинге дат из строки:', tourType.dates, e);
-            dates = [];
+            // Пробуем разбить строку по запятым или другим разделителям
+            if (tourType.dates.includes(',')) {
+              dates = tourType.dates.split(',').map(d => d.trim());
+            } else {
+              dates = [tourType.dates];
+            }
+            console.log('Даты после альтернативного парсинга:', dates);
           }
         } else if (Array.isArray(tourType.dates)) {
           dates = tourType.dates;
+          console.log('Даты уже массив:', dates);
         } else {
+          console.warn('Неизвестный тип dates:', typeof tourType.dates, tourType.dates);
           dates = [];
         }
+      } else {
+        console.warn('tourType.dates пустое или undefined');
       }
       
-      console.log('Даты для тура', tourType.name, ':', dates);
+      console.log('Итоговый массив дат:', dates);
       
       // Если дат нет, используем дефолтные
       if (dates.length === 0) {
+        console.log('Нет дат, используем дефолтные');
         dates = ['2024-07-12', '2024-08-18', '2024-09-02'];
       }
       
       // Ограничиваем до 3 дат и форматируем их
-      dates.slice(0, 3).forEach(dateStr => {
+      dates.slice(0, 3).forEach((dateStr, idx) => {
+        console.log(`Форматирование даты ${idx + 1}:`, dateStr);
         const date = formatDate(dateStr);
+        console.log(`Результат форматирования:`, date);
         if (date.day && date.month) {
           const dateItem = document.createElement('div');
           dateItem.innerHTML = `<span>${date.day}</span><small>${date.month}</small>`;
           datesDiv.appendChild(dateItem);
+          console.log(`Дата добавлена: ${date.day} ${date.month}`);
         } else {
-          console.warn('Не удалось отформатировать дату:', dateStr);
+          console.warn('Не удалось отформатировать дату:', dateStr, 'Результат:', date);
         }
       });
+      
+      // Если не добавилось ни одной даты, добавляем дефолтные
+      if (datesDiv.children.length === 0) {
+        console.log('Не удалось добавить даты, добавляем дефолтные вручную');
+        const defaultDates = [
+          { day: '12', month: 'июля' },
+          { day: '18', month: 'авг' },
+          { day: '02', month: 'сент' }
+        ];
+        defaultDates.forEach(d => {
+          const dateItem = document.createElement('div');
+          dateItem.innerHTML = `<span>${d.day}</span><small>${d.month}</small>`;
+          datesDiv.appendChild(dateItem);
+        });
+      }
       
       card.appendChild(datesDiv);
       
