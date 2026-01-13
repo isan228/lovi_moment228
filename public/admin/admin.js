@@ -644,8 +644,197 @@ function showTourForm(tourId = null) {
             }
         }, 100);
         
+        // Инициализируем сводку цен
+        setTimeout(() => {
+            const pricesSummary = document.getElementById('tourPricesSummary');
+            if (pricesSummary) {
+                pricesSummary.textContent = 'Цены не установлены';
+            }
+        }, 100);
+        
         // Данные для дат по месяцам (хранятся в памяти)
         let datesByMonthData = [];
+        
+        // Данные для цен по дням недели (хранятся в памяти)
+        let pricesByDayData = [];
+        
+        // Дни недели
+        const weekDays = [
+            { name: 'Понедельник', value: 'понедельник' },
+            { name: 'Вторник', value: 'вторник' },
+            { name: 'Среда', value: 'среда' },
+            { name: 'Четверг', value: 'четверг' },
+            { name: 'Пятница', value: 'пятница' },
+            { name: 'Суббота', value: 'суббота' },
+            { name: 'Воскресенье', value: 'воскресенье' }
+        ];
+        
+        // Функция для открытия модального окна с ценами
+        function openPricesModal() {
+            console.log('Открытие модального окна с ценами');
+            const modal = document.getElementById('pricesModal');
+            const content = document.getElementById('pricesModalContent');
+            
+            if (!modal || !content) {
+                console.error('Элементы модального окна цен не найдены');
+                alert('Ошибка: модальное окно не найдено. Обновите страницу.');
+                return;
+            }
+            
+            // Генерируем интерфейс для каждого дня недели
+            content.innerHTML = weekDays.map(day => {
+                const dayData = pricesByDayData.find(p => p.day === day.value) || { day: day.value, price: '' };
+                const price = dayData.price || '';
+                
+                return `
+                    <div style="margin-bottom: 15px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; display: flex; align-items: center; gap: 15px;">
+                        <label style="display: flex; align-items: center; gap: 10px; flex: 1; cursor: pointer;">
+                            <input type="checkbox" data-day="${day.value}" ${price ? 'checked' : ''} style="width: 20px; height: 20px; cursor: pointer;">
+                            <span style="font-weight: 500; min-width: 120px;">${day.name}</span>
+                        </label>
+                        <input type="number" 
+                               data-day="${day.value}" 
+                               placeholder="Цена" 
+                               step="0.01" 
+                               value="${price}"
+                               style="width: 150px; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"
+                               ${price ? '' : 'disabled'}>
+                    </div>
+                `;
+            }).join('');
+            
+            // Обработчик для чекбоксов - включаем/выключаем поле цены
+            content.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const priceInput = content.querySelector(`input[type="number"][data-day="${this.getAttribute('data-day')}"]`);
+                    if (priceInput) {
+                        priceInput.disabled = !this.checked;
+                        if (!this.checked) {
+                            priceInput.value = '';
+                        }
+                    }
+                });
+            });
+            
+            modal.style.display = 'block';
+        }
+        
+        // Функция для закрытия модального окна с ценами
+        function closePricesModal() {
+            const modal = document.getElementById('pricesModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+        
+        // Функция для сохранения цен
+        function savePrices() {
+            const content = document.getElementById('pricesModalContent');
+            if (!content) {
+                console.error('Элемент pricesModalContent не найден');
+                return;
+            }
+            
+            const checkboxes = content.querySelectorAll('input[type="checkbox"]:checked');
+            const pricesByDay = [];
+            
+            checkboxes.forEach(checkbox => {
+                const day = checkbox.getAttribute('data-day');
+                const priceInput = content.querySelector(`input[type="number"][data-day="${day}"]`);
+                const price = priceInput ? parseFloat(priceInput.value) : null;
+                
+                if (price && !isNaN(price)) {
+                    pricesByDay.push({
+                        day: day,
+                        price: price
+                    });
+                }
+            });
+            
+            pricesByDayData = pricesByDay;
+            updatePricesSummary();
+            closePricesModal();
+        }
+        
+        // Функция для обновления сводки цен
+        function updatePricesSummary() {
+            const summary = document.getElementById('tourPricesSummary');
+            if (!summary) {
+                console.error('Элемент tourPricesSummary не найден');
+                return;
+            }
+            
+            if (pricesByDayData.length === 0) {
+                summary.textContent = 'Цены не установлены';
+                summary.style.color = '#666';
+            } else {
+                const summaryText = pricesByDayData.map(p => 
+                    `${p.day}: ${p.price} сом`
+                ).join('; ');
+                summary.textContent = summaryText;
+                summary.style.color = '#333';
+            }
+        }
+        
+        // Обработчики для модального окна с ценами
+        setTimeout(() => {
+            const openPricesModalBtn = document.getElementById('openPricesModalBtn');
+            const closePricesModalBtn = document.getElementById('closePricesModalBtn');
+            const savePricesBtn = document.getElementById('savePricesBtn');
+            const cancelPricesBtn = document.getElementById('cancelPricesBtn');
+            const pricesModal = document.getElementById('pricesModal');
+            
+            console.log('Инициализация обработчиков модального окна с ценами:', {
+                openPricesModalBtn: !!openPricesModalBtn,
+                closePricesModalBtn: !!closePricesModalBtn,
+                savePricesBtn: !!savePricesBtn,
+                cancelPricesBtn: !!cancelPricesBtn,
+                pricesModal: !!pricesModal
+            });
+            
+            if (openPricesModalBtn) {
+                openPricesModalBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Клик по кнопке открытия модального окна с ценами');
+                    openPricesModal();
+                });
+            } else {
+                console.error('Кнопка openPricesModalBtn не найдена!');
+            }
+            
+            if (closePricesModalBtn) {
+                closePricesModalBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    closePricesModal();
+                });
+            }
+            
+            if (savePricesBtn) {
+                savePricesBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    savePrices();
+                });
+            }
+            
+            if (cancelPricesBtn) {
+                cancelPricesBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    closePricesModal();
+                });
+            }
+            
+            if (pricesModal) {
+                pricesModal.addEventListener('click', (e) => {
+                    if (e.target === pricesModal) {
+                        closePricesModal();
+                    }
+                });
+            }
+        }, 100);
         
         // Месяцы для выбора
         const months = [
