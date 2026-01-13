@@ -135,26 +135,63 @@
                 const tourItem = document.querySelector('.nav-reviews__dropdown');
 
                 // Открытие/закрытие основного меню
-                toggle.addEventListener('click', e => {
-                e.stopPropagation();
-                menu.classList.toggle('open');
-                });
+                if (toggle && menu) {
+                    toggle.addEventListener('click', e => {
+                        e.stopPropagation();
+                        menu.classList.toggle('open');
+                    });
+                }
 
                 // Подменю «Туры» кликом (для mobile)
-                tourItem.addEventListener('click', e => {
-                if (window.innerWidth <= 480) {
-                    e.preventDefault();
-                    tourItem.classList.toggle('open');
+                if (tourItem) {
+                    tourItem.addEventListener('click', e => {
+                        if (window.innerWidth <= 480) {
+                            e.preventDefault();
+                            tourItem.classList.toggle('open');
+                        }
+                    });
                 }
-                });
 
                 // Клик вне — закрыть всё
                 document.addEventListener('click', e => {
-                if (!e.target.closest('.nav-reviews')) {
-                    menu.classList.remove('open');
-                    tourItem.classList.remove('open');
-                }
+                    if (!e.target.closest('.nav-reviews')) {
+                        if (menu) menu.classList.remove('open');
+                        if (tourItem) tourItem.classList.remove('open');
+                    }
                 });
+                
+                // Загрузка изображений галереи из API
+                async function loadGallery() {
+                    try {
+                        const response = await fetch('/api/gallery');
+                        const images = await response.json();
+                        const galleryContainer = document.querySelector('.mosaic-gallery');
+                        
+                        if (!galleryContainer) return;
+                        
+                        if (!images || images.length === 0) {
+                            // Если нет изображений из API, оставляем статические
+                            return;
+                        }
+                        
+                        // Очищаем контейнер и добавляем изображения из API
+                        galleryContainer.innerHTML = '';
+                        images.forEach(img => {
+                            const item = document.createElement('div');
+                            item.className = 'mosaic-item';
+                            const imgEl = document.createElement('img');
+                            imgEl.src = img.imagePath;
+                            imgEl.alt = img.title || 'Фотография галереи';
+                            item.appendChild(imgEl);
+                            galleryContainer.appendChild(item);
+                        });
+                    } catch (error) {
+                        console.error('Ошибка при загрузке галереи:', error);
+                        // В случае ошибки оставляем статические изображения
+                    }
+                }
+                
+                loadGallery();
             });
     </script>
 </body>
