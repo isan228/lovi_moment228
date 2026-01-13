@@ -462,6 +462,13 @@ async function loadMainVideo() {
 document.addEventListener('DOMContentLoaded', () => {
   // Загружаем видео главной страницы
   loadMainVideo();
+  
+  // Периодически проверяем обновление видео (каждые 30 секунд)
+  // Это нужно, если видео было обновлено через админ-панель, пока страница открыта
+  setInterval(() => {
+    loadMainVideo();
+  }, 30000); // Проверяем каждые 30 секунд
+  
   const track      = document.getElementById('carouselTrack');
   const prevBtn    = document.getElementById('prevBtn');
   const nextBtn    = document.getElementById('nextBtn');
