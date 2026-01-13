@@ -131,24 +131,46 @@ router.put('/main_video', requireAuth, uploadVideo.single('video'), async (req, 
 
     const videoPath = `/static/images/${req.file.filename}`;
     
-    // Удаляем старое видео, если оно существует
-    const oldSetting = await Settings.findOne({ where: { key: 'main_video' } });
-    if (oldSetting && oldSetting.value && oldSetting.value !== '/static/images/mainback3.mp4') {
-      // Путь может быть либо в public/static/images, либо в static/images (старый формат)
-      const oldVideoPathPublic = path.join(__dirname, '../../public', oldSetting.value);
-      const oldVideoPathStatic = path.join(__dirname, '../../', oldSetting.value);
-      if (fs.existsSync(oldVideoPathPublic)) {
-        try {
-          fs.unlinkSync(oldVideoPathPublic);
-        } catch (err) {
-          console.error('Ошибка при удалении старого видео:', err);
-        }
-      } else if (fs.existsSync(oldVideoPathStatic)) {
-        try {
-          fs.unlinkSync(oldVideoPathStatic);
-        } catch (err) {
-          console.error('Ошибка при удалении старого видео:', err);
-        }
+    // Удаляем ВСЕ старые видео main-video-* перед загрузкой нового
+    const imagesDir = path.join(__dirname, '../../public/static/images');
+    if (fs.existsSync(imagesDir)) {
+      try {
+        const files = fs.readdirSync(imagesDir);
+        files.forEach(file => {
+          // Удаляем все файлы, начинающиеся с main-video-
+          if (file.startsWith('main-video-')) {
+            const filePath = path.join(imagesDir, file);
+            try {
+              fs.unlinkSync(filePath);
+              console.log('Удалено старое видео:', file);
+            } catch (err) {
+              console.error('Ошибка при удалении файла', file, ':', err);
+            }
+          }
+        });
+      } catch (err) {
+        console.error('Ошибка при чтении директории:', err);
+      }
+    }
+    
+    // Также удаляем из старой директории static/images (если существует)
+    const oldImagesDir = path.join(__dirname, '../../static/images');
+    if (fs.existsSync(oldImagesDir)) {
+      try {
+        const files = fs.readdirSync(oldImagesDir);
+        files.forEach(file => {
+          if (file.startsWith('main-video-')) {
+            const filePath = path.join(oldImagesDir, file);
+            try {
+              fs.unlinkSync(filePath);
+              console.log('Удалено старое видео из старой директории:', file);
+            } catch (err) {
+              console.error('Ошибка при удалении файла', file, ':', err);
+            }
+          }
+        });
+      } catch (err) {
+        console.error('Ошибка при чтении старой директории:', err);
       }
     }
 
@@ -175,6 +197,67 @@ router.put('/main_video', requireAuth, uploadVideo.single('video'), async (req, 
     }
     console.error('Ошибка при обновлении видео:', error);
     res.status(500).json({ error: 'Ошибка при обновлении видео' });
+  }
+});
+
+// Удалить видео главной страницы
+router.delete('/main_video', requireAuth, async (req, res) => {
+  try {
+    const setting = await Settings.findOne({ where: { key: 'main_video' } });
+    
+    if (!setting) {
+      return res.status(404).json({ error: 'Настройка не найдена' });
+    }
+
+    // Удаляем файл видео, если он существует
+    if (setting.value && setting.value !== '/static/images/mainback3.mp4') {
+      const videoPathPublic = path.join(__dirname, '../../public', setting.value);
+      const videoPathStatic = path.join(__dirname, '../../', setting.value);
+      
+      if (fs.existsSync(videoPathPublic)) {
+        try {
+          fs.unlinkSync(videoPathPublic);
+          console.log('Удален файл видео:', videoPathPublic);
+        } catch (err) {
+          console.error('Ошибка при удалении файла видео:', err);
+        }
+      } else if (fs.existsSync(videoPathStatic)) {
+        try {
+          fs.unlinkSync(videoPathStatic);
+          console.log('Удален файл видео:', videoPathStatic);
+        } catch (err) {
+          console.error('Ошибка при удалении файла видео:', err);
+        }
+      }
+      
+      // Также удаляем все другие main-video-* файлы
+      const imagesDir = path.join(__dirname, '../../public/static/images');
+      if (fs.existsSync(imagesDir)) {
+        try {
+          const files = fs.readdirSync(imagesDir);
+          files.forEach(file => {
+            if (file.startsWith('main-video-')) {
+              const filePath = path.join(imagesDir, file);
+              try {
+                fs.unlinkSync(filePath);
+                console.log('Удалено старое видео:', file);
+              } catch (err) {
+                console.error('Ошибка при удалении файла', file, ':', err);
+              }
+            }
+          });
+        } catch (err) {
+          console.error('Ошибка при чтении директории:', err);
+        }
+      }
+    }
+
+    // Удаляем настройку из БД
+    await setting.destroy();
+    res.json({ success: true, message: 'Видео удалено' });
+  } catch (error) {
+    console.error('Ошибка при удалении видео:', error);
+    res.status(500).json({ error: 'Ошибка при удалении видео' });
   }
 });
 

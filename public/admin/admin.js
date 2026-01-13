@@ -1082,13 +1082,14 @@ async function loadSettings() {
                                     <source src="${setting.value}" type="video/mp4">
                                     Ваш браузер не поддерживает видео.
                                 </video>
+                                <button type="button" id="deleteVideoBtn" class="btn btn-danger" style="margin-top: 10px;">Удалить текущее видео</button>
                             </div>
                         ` : `
                             <div class="form-group" style="margin-top: 15px;">
                                 <p style="color: #666;">Используется видео по умолчанию: /static/images/mainback3.mp4</p>
                             </div>
                         `}
-                        <button type="submit" class="btn btn-success">Сохранить</button>
+                        <button type="submit" class="btn btn-success">Сохранить новое видео</button>
                     </form>
                 </div>
                 
