@@ -382,12 +382,29 @@
 // Загрузка видео главной страницы
 async function loadMainVideo() {
   try {
-    const response = await fetch('/api/main-video?t=' + Date.now()); // Добавляем timestamp для обхода кеша
+    // Добавляем уникальный timestamp для обхода кеша API
+    const apiUrl = '/api/main-video?t=' + Date.now() + '&r=' + Math.random();
+    const response = await fetch(apiUrl, { cache: 'no-store' });
     const data = await response.json();
     const videoElement = document.getElementById('mainVideo');
+    
     if (videoElement && data.videoPath) {
-      // Добавляем timestamp к URL видео для обхода кеша браузера
-      const videoUrl = data.videoPath + (data.videoPath.includes('?') ? '&' : '?') + 't=' + Date.now();
+      // Добавляем уникальный timestamp к URL видео для обхода кеша браузера
+      const timestamp = Date.now();
+      const videoUrl = data.videoPath + (data.videoPath.includes('?') ? '&' : '?') + 't=' + timestamp + '&r=' + Math.random();
+      
+      console.log('Загружаю видео:', videoUrl);
+      
+      // Сохраняем текущий источник для сравнения
+      const currentSource = videoElement.querySelector('source');
+      const currentSrc = currentSource ? currentSource.src : '';
+      
+      // Если источник уже такой же (без timestamp), все равно обновляем
+      const basePath = data.videoPath.split('?')[0];
+      if (currentSrc.includes(basePath) && currentSrc === videoElement.querySelector('source')?.src) {
+        // Принудительно обновляем даже если путь похож
+        videoElement.innerHTML = '';
+      }
       
       // Полностью заменяем содержимое video элемента
       videoElement.innerHTML = `<source src="${videoUrl}" type="video/mp4">`;
@@ -397,23 +414,29 @@ async function loadMainVideo() {
       videoElement.autoplay = true;
       videoElement.muted = true;
       videoElement.playsInline = true;
+      videoElement.preload = 'auto';
+      
+      // Останавливаем текущее воспроизведение
+      videoElement.pause();
+      videoElement.currentTime = 0;
       
       // Перезагружаем видео с новым источником
       videoElement.load();
       
       // Пытаемся воспроизвести после загрузки
-      videoElement.addEventListener('loadeddata', () => {
+      const playVideo = () => {
         videoElement.play().catch(err => {
           console.log('Автовоспроизведение заблокировано браузером:', err);
         });
-      }, { once: true });
+      };
       
-      // Также пытаемся воспроизвести сразу (на случай если событие уже произошло)
-      setTimeout(() => {
-        videoElement.play().catch(err => {
-          console.log('Автовоспроизведение заблокировано браузером:', err);
-        });
-      }, 100);
+      videoElement.addEventListener('loadeddata', playVideo, { once: true });
+      videoElement.addEventListener('canplay', playVideo, { once: true });
+      
+      // Также пытаемся воспроизвести через небольшую задержку
+      setTimeout(playVideo, 200);
+    } else {
+      console.warn('Видео элемент не найден или путь не получен:', videoElement, data);
     }
   } catch (error) {
     console.error('Ошибка при загрузке видео:', error);
