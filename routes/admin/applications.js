@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { TourApplication, Tour } = require('../../models');
+const { TourApplication, Tour, sequelize } = require('../../models');
+const { Op } = require('sequelize');
 const { requireAuth } = require('../../middleware/auth');
 
 // Получить все заявки
