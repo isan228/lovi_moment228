@@ -565,7 +565,7 @@ function showTourForm(tourId = null) {
                         <div id="tourPricesByDayContainer">
                             <!-- Динамические поля для дней недели -->
                         </div>
-                        <button type="button" class="btn btn-primary" onclick="addPriceDay()" style="margin-top: 10px;">+ Добавить день</button>
+                        <button type="button" id="addPriceDayBtn" class="btn btn-primary" style="margin-top: 10px;">+ Добавить день</button>
                         <small style="color: #666; display: block; margin-top: 5px;">Укажите дни недели и цены для каждого дня</small>
                     </div>
                     <div class="form-row">
