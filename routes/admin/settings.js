@@ -155,15 +155,16 @@ router.put('/main_video', requireAuth, (req, res, next) => {
     console.log('Обработка загруженного файла:', req.file.filename);
 
     const videoPath = `/static/images/${req.file.filename}`;
+    const newFileName = req.file.filename;
     
-    // Удаляем ВСЕ старые видео main-video-* перед загрузкой нового
+    // Удаляем ВСЕ старые видео main-video-*, КРОМЕ только что загруженного
     const imagesDir = path.join(__dirname, '../../public/static/images');
     if (fs.existsSync(imagesDir)) {
       try {
         const files = fs.readdirSync(imagesDir);
         files.forEach(file => {
-          // Удаляем все файлы, начинающиеся с main-video-
-          if (file.startsWith('main-video-')) {
+          // Удаляем все файлы, начинающиеся с main-video-, но НЕ новый файл
+          if (file.startsWith('main-video-') && file !== newFileName) {
             const filePath = path.join(imagesDir, file);
             try {
               fs.unlinkSync(filePath);
@@ -184,7 +185,8 @@ router.put('/main_video', requireAuth, (req, res, next) => {
       try {
         const files = fs.readdirSync(oldImagesDir);
         files.forEach(file => {
-          if (file.startsWith('main-video-')) {
+          // Удаляем все файлы, начинающиеся с main-video-, но НЕ новый файл
+          if (file.startsWith('main-video-') && file !== newFileName) {
             const filePath = path.join(oldImagesDir, file);
             try {
               fs.unlinkSync(filePath);
