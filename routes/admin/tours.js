@@ -362,7 +362,7 @@ router.put('/:id', requireAuth, uploadHeaderImage.single('headerImage'), async (
       include: [
         { model: TourType, as: 'tourType' },
         { model: TourImage, as: 'images', order: [['order', 'ASC']] },
-        { model: Country, as: 'country' }
+        { model: Country, as: 'countryData' }
       ]
     });
 
