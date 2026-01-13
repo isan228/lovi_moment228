@@ -173,6 +173,15 @@ router.post('/', requireAuth, uploadHeaderImage.single('headerImage'), async (re
       headerImagePath = `/static/images/tours/${req.file.filename}`;
     }
 
+    // Обрабатываем price: если пустая строка или не число, то null
+    let priceValue = null;
+    if (price !== undefined && price !== null && price !== '') {
+      const parsedPrice = parseFloat(price);
+      if (!isNaN(parsedPrice)) {
+        priceValue = parsedPrice;
+      }
+    }
+
     const tour = await Tour.create({
       title,
       description,
@@ -182,7 +191,7 @@ router.post('/', requireAuth, uploadHeaderImage.single('headerImage'), async (re
       duration,
       daysCount: daysCount || 1,
       program: programArray,
-      price,
+      price: priceValue,
       pricesByDay: pricesByDayArray,
       slug: slug || null,
       headerImage: headerImagePath,
