@@ -595,8 +595,12 @@ async function loadTourTypes() {
       return;
     }
     
-    // Очищаем существующие карточки и точки
-    track.innerHTML = '';
+    // Очищаем существующие карточки (но НЕ удаляем nextBtn, который может быть внутри track)
+    // Находим все карточки и удаляем их по отдельности
+    const existingCards = track.querySelectorAll('.tour-card');
+    existingCards.forEach(card => card.remove());
+    
+    // Очищаем точки
     dotsNav.innerHTML = '';
     
     // Функция для форматирования даты
@@ -800,12 +804,20 @@ function initCarousel() {
   
   const cards = Array.from(track.querySelectorAll('.tour-card'));
   const dots = Array.from(dotsNav.querySelectorAll('.dot'));
+  
+  console.log('Найдено карточек:', cards.length, 'Найдено точек:', dots.length);
+  console.log('Карточки:', cards);
+  console.log('Точки:', dots);
+  
+  if (cards.length === 0) {
+    console.error('Карточки туров не найдены в track. Содержимое track:', track.innerHTML.substring(0, 200));
+    return;
+  }
+  
   let currentIndex = 0;
   let autoPlayInterval = null;
   
-  if (cards.length === 0) {
-    return;
-  }
+  console.log('Инициализация карусели успешна:', cards.length, 'карточек');
   
   function scrollToIndex(index) {
     const card = cards[index];
