@@ -24,8 +24,7 @@
 
 ```nginx
 server {
-    listen 80;
-    server_name lovimoment-travel.com;  # ваш домен
+    server_name lovimoment-travel.com;
     
     # Увеличиваем лимит размера загружаемых файлов
     client_max_body_size 500M;
@@ -34,8 +33,16 @@ server {
         proxy_pass http://localhost:3000;
         # ... остальные настройки
     }
+    
+    # Если используете SSL (HTTPS):
+    listen 443 ssl;
+    ssl_certificate /etc/letsencrypt/live/lovimoment-travel.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/lovimoment-travel.com/privkey.pem;
+    # ... остальные SSL настройки
 }
 ```
+
+**Важно:** Добавьте `client_max_body_size 500M;` сразу после `server_name`, до блока `location`.
 
 ### 3. Проверьте и перезагрузите Nginx
 
