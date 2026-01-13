@@ -23,8 +23,9 @@ app.use(session({
 }));
 
 // Middleware для парсинга тела запроса
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+// Увеличиваем лимит для загрузки больших файлов (видео)
+app.use(bodyParser.json({ limit: '200mb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '200mb' }));
 
 // Настройка Nodemailer для отправки email
 const transporter = nodemailer.createTransport({

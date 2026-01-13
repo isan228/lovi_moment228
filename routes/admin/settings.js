@@ -33,7 +33,7 @@ const uploadVideo = multer({
       cb(new Error('Только видео файлы разрешены! (MP4, WEBM, OGG)'));
     }
   },
-  limits: { fileSize: 100 * 1024 * 1024 } // 100MB
+  limits: { fileSize: 500 * 1024 * 1024 } // 500MB (увеличено для больших видео)
 });
 
 // Получить все настройки
