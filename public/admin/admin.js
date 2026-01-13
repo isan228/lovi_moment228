@@ -1157,22 +1157,28 @@ async function loadSettings() {
                 
                 formData.append('video', videoFile);
                 
+                console.log('Отправка видео файла:', videoFile.name, 'размер:', videoFile.size, 'тип:', videoFile.type);
+                
                 try {
                     const response = await apiFetch('/api/admin/settings/main_video', {
                         method: 'PUT',
                         body: formData
+                        // НЕ добавляем Content-Type - браузер установит его автоматически с boundary для multipart/form-data
                     });
                     
                     if (response.ok) {
+                        const result = await response.json();
+                        console.log('Видео успешно загружено:', result);
                         alert('Видео успешно обновлено! Старое видео удалено. Обновите страницу сайта (Ctrl+F5) чтобы увидеть изменения.');
                         loadSettings();
                     } else {
                         const error = await response.json();
+                        console.error('Ошибка при загрузке видео:', error);
                         alert('Ошибка: ' + (error.error || 'Не удалось обновить видео'));
                     }
                 } catch (error) {
-                    alert('Ошибка при загрузке видео');
-                    console.error(error);
+                    console.error('Ошибка при загрузке видео:', error);
+                    alert('Ошибка при загрузке видео: ' + (error.message || 'Неизвестная ошибка'));
                 }
             });
         }

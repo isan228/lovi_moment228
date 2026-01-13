@@ -121,11 +121,38 @@ router.post('/', requireAuth, async (req, res) => {
 
 // Обновить видео главной страницы (с загрузкой файла)
 // ВАЖНО: должен быть ПЕРЕД router.put('/:key'), иначе будет перехвачен общим маршрутом
-router.put('/main_video', requireAuth, uploadVideo.single('video'), async (req, res) => {
+router.put('/main_video', requireAuth, (req, res, next) => {
+  console.log('Запрос на загрузку видео. Content-Type:', req.headers['content-type']);
+  console.log('req.body:', req.body);
+  
+  uploadVideo.single('video')(req, res, (err) => {
+    if (err) {
+      console.error('Ошибка multer при загрузке видео:', err);
+      if (err instanceof multer.MulterError) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.status(400).json({ error: 'Файл слишком большой. Максимальный размер: 500MB' });
+        }
+        return res.status(400).json({ error: 'Ошибка загрузки файла: ' + err.message });
+      }
+      return res.status(400).json({ error: err.message || 'Ошибка при загрузке файла' });
+    }
+    console.log('Файл успешно загружен multer. req.file:', req.file ? {
+      filename: req.file.filename,
+      size: req.file.size,
+      mimetype: req.file.mimetype
+    } : 'null');
+    next();
+  });
+}, async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ error: 'Видео файл не загружен' });
+      console.error('Файл не загружен. req.file:', req.file);
+      console.error('req.body:', req.body);
+      console.error('req.headers:', req.headers);
+      return res.status(400).json({ error: 'Видео файл не загружен. Убедитесь, что вы выбрали файл и он имеет правильный формат (MP4, WEBM, OGG)' });
     }
+    
+    console.log('Обработка загруженного файла:', req.file.filename);
 
     const videoPath = `/static/images/${req.file.filename}`;
     
