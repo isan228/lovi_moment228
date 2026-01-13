@@ -562,11 +562,23 @@ function showTourForm(tourId = null) {
                     </div>
                     <div class="form-group">
                         <label>Цены по дням недели</label>
-                        <div id="tourPricesByDayContainer">
-                            <!-- Динамические поля для дней недели -->
+                        <button type="button" id="openPricesModalBtn" class="btn btn-primary" style="margin-bottom: 10px;">Управление ценами по дням</button>
+                        <div id="tourPricesSummary" style="color: #666; font-size: 14px; margin-top: 5px;">
+                            Цены не установлены
                         </div>
-                        <button type="button" id="addPriceDayBtn" class="btn btn-primary" style="margin-top: 10px;">+ Добавить день</button>
-                        <small style="color: #666; display: block; margin-top: 5px;">Укажите дни недели и цены для каждого дня</small>
+                        <div id="pricesModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; overflow-y: auto;">
+                            <div style="background: white; margin: 50px auto; padding: 20px; max-width: 600px; border-radius: 8px; position: relative;">
+                                <button type="button" id="closePricesModalBtn" style="position: absolute; top: 10px; right: 10px; background: #f44336; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">✕</button>
+                                <h3 style="margin-top: 0;">Управление ценами по дням недели</h3>
+                                <div id="pricesModalContent">
+                                    <!-- Содержимое будет добавлено динамически -->
+                                </div>
+                                <div style="margin-top: 20px; text-align: right;">
+                                    <button type="button" id="savePricesBtn" class="btn btn-success">Сохранить</button>
+                                    <button type="button" id="cancelPricesBtn" class="btn btn-primary">Отмена</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>Даты по месяцам</label>
@@ -936,14 +948,8 @@ function showTourForm(tourId = null) {
                     document.getElementById('tourFaq').value = data.faq ? JSON.stringify(data.faq, null, 2) : '';
                     
                     // Загружаем цены по дням недели
-                    const pricesByDay = data.pricesByDay && Array.isArray(data.pricesByDay) ? data.pricesByDay : [];
-                    const pricesContainer = document.getElementById('tourPricesByDayContainer');
-                    pricesContainer.innerHTML = '';
-                    if (pricesByDay.length > 0) {
-                        pricesByDay.forEach(item => {
-                            addPriceDay(item.day || '', item.price || '');
-                        });
-                    }
+                    pricesByDayData = data.pricesByDay && Array.isArray(data.pricesByDay) ? data.pricesByDay : [];
+                    updatePricesSummary();
                     
                     // Устанавливаем количество дней и программу
                     const daysCount = data.daysCount || 1;
