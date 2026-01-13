@@ -804,9 +804,14 @@ function showTourForm(tourId = null) {
                 const datesByMonthText = document.getElementById('tourDatesByMonth').value.trim();
                 if (datesByMonthText) {
                     datesByMonth = JSON.parse(datesByMonthText);
+                    // Проверяем, что это массив
+                    if (!Array.isArray(datesByMonth)) {
+                        throw new Error('datesByMonth должен быть массивом');
+                    }
                 }
             } catch (e) {
-                alert('Ошибка в формате дат по месяцам. Проверьте JSON.');
+                alert('Ошибка в формате дат по месяцам. Проверьте JSON.\n\nПример правильного формата:\n[{"month": "Июнь", "days": [20, 25, 27]}, {"month": "Июль", "days": [4, 9, 11]}]');
+                console.error('Ошибка парсинга datesByMonth:', e);
                 return;
             }
 
@@ -815,9 +820,14 @@ function showTourForm(tourId = null) {
                 const importantInfoText = document.getElementById('tourImportantInfo').value.trim();
                 if (importantInfoText) {
                     importantInfo = JSON.parse(importantInfoText);
+                    // Проверяем, что это объект
+                    if (typeof importantInfo !== 'object' || Array.isArray(importantInfo)) {
+                        throw new Error('importantInfo должен быть объектом');
+                    }
                 }
             } catch (e) {
-                alert('Ошибка в формате важной информации. Проверьте JSON.');
+                alert('Ошибка в формате важной информации. Проверьте JSON.\n\nПример правильного формата:\n{"included": ["Проживание", "Трансфер"], "notIncluded": ["Авиаперелет"], "payment": ["Предоплата 30%"]}');
+                console.error('Ошибка парсинга importantInfo:', e);
                 return;
             }
 
@@ -826,9 +836,14 @@ function showTourForm(tourId = null) {
                 const faqText = document.getElementById('tourFaq').value.trim();
                 if (faqText) {
                     faq = JSON.parse(faqText);
+                    // Проверяем, что это массив
+                    if (!Array.isArray(faq)) {
+                        throw new Error('faq должен быть массивом');
+                    }
                 }
             } catch (e) {
-                alert('Ошибка в формате FAQ. Проверьте JSON.');
+                alert('Ошибка в формате FAQ. Проверьте JSON.\n\nПример правильного формата:\n[{"question": "Вопрос?", "answer": "Ответ"}]');
+                console.error('Ошибка парсинга faq:', e);
                 return;
             }
 
