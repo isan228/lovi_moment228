@@ -678,26 +678,46 @@ async function loadTourTypes() {
         dayNumbers = [12, 18, 2];
       }
       
-      // Преобразуем числа месяца в полные даты (используем текущий месяц и следующие месяцы)
+      // Преобразуем числа месяца в ближайшие будущие даты
       const now = new Date();
+      const currentDay = now.getDate();
       const currentMonth = now.getMonth();
       const currentYear = now.getFullYear();
       
-      // Берем первые 3 числа и создаем даты для текущего и следующих месяцев
       const months = ['янв', 'фев', 'мар', 'апр', 'мая', 'июня', 'июля', 'авг', 'сент', 'окт', 'ноя', 'дек'];
       
-      dayNumbers.slice(0, 3).forEach((dayNum, idx) => {
-        // Используем текущий месяц для первой даты, следующий для второй, и т.д.
-        const monthOffset = idx;
-        const date = new Date(currentYear, currentMonth + monthOffset, parseInt(dayNum));
-        
-        // Проверяем, что дата валидна
-        if (!isNaN(date.getTime()) && date.getDate() === parseInt(dayNum)) {
-          const monthName = months[date.getMonth()];
-          const dateItem = document.createElement('div');
-          dateItem.innerHTML = `<span>${dayNum}</span><small>${monthName}</small>`;
-          datesDiv.appendChild(dateItem);
-        }
+      // Создаем массив всех возможных дат (текущий месяц и следующие 12 месяцев)
+      const allDates = [];
+      for (let monthOffset = 0; monthOffset < 12; monthOffset++) {
+        dayNumbers.forEach(dayNum => {
+          const date = new Date(currentYear, currentMonth + monthOffset, parseInt(dayNum));
+          // Проверяем, что дата валидна и не в прошлом
+          if (!isNaN(date.getTime()) && date.getDate() === parseInt(dayNum)) {
+            // Если это текущий месяц, проверяем, что дата еще не прошла
+            if (monthOffset === 0 && parseInt(dayNum) < currentDay) {
+              // Пропускаем прошедшие даты текущего месяца
+              return;
+            }
+            allDates.push({
+              day: parseInt(dayNum),
+              month: date.getMonth(),
+              year: date.getFullYear(),
+              date: date
+            });
+          }
+        });
+      }
+      
+      // Сортируем по дате и берем первые 3 ближайшие будущие даты
+      allDates.sort((a, b) => a.date - b.date);
+      const nearestDates = allDates.slice(0, 3);
+      
+      // Отображаем даты
+      nearestDates.forEach(dateInfo => {
+        const monthName = months[dateInfo.month];
+        const dateItem = document.createElement('div');
+        dateItem.innerHTML = `<span>${dateInfo.day}</span><small>${monthName}</small>`;
+        datesDiv.appendChild(dateItem);
       });
       
       // Если не добавилось ни одной даты, добавляем дефолтные
