@@ -27,6 +27,60 @@
     
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Структурированные данные (Schema.org) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "TravelAgency",
+      "name": "Lovi Moment Travel",
+      "description": "Туры по Центральной Азии: Кыргызстан, Казахстан, Узбекистан. Авторские, экскурсионные, групповые и индивидуальные туры.",
+      "url": "https://lovimoment-travel.com",
+      "logo": "https://lovimoment-travel.com/static/images/Lovi Moment logo.png",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "ул. Калык Акиева 66, ТЦ Весна, 3 этаж С13А",
+        "addressLocality": "Бишкек",
+        "addressCountry": "KG"
+      },
+      "telephone": "+996 503 904 904",
+      "priceRange": "$$",
+      "areaServed": {
+        "@type": "Country",
+        "name": ["Кыргызстан", "Казахстан", "Узбекистан"]
+      },
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "Туры по Центральной Азии",
+        "itemListElement": [
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "TouristTrip",
+              "name": "Туры по Кыргызстану",
+              "description": "Горные туры, отдых на Иссык-Куле, треккинг, джип-туры, конные туры"
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "TouristTrip",
+              "name": "Туры по Казахстану",
+              "description": "Экскурсии по Казахстану, туры в Алматы, этнотуры, природные туры"
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "TouristTrip",
+              "name": "Туры по Узбекистану",
+              "description": "Самарканд, Бухара, Шелковый путь, исторические туры, архитектурные памятники"
+            }
+          }
+        ]
+      }
+    }
+    </script>
 </head>
 <body>
 
