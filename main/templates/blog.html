@@ -11,6 +11,7 @@
     <link rel="canonical" href="https://lovimoment-travel.com/blog/">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="{% static 'css/reviews.css' %}">
+    <link rel="stylesheet" href="{% static 'css/blog.css' %}">
 </head>
 <body>
     <header class="blog-header">
@@ -78,96 +79,193 @@
         <div class="blog-section__inner">
             <div class="blog-grid">
             
-                <!-- Card #1 -->
-                <a href="{% url 'blog_about' %}" class="blog-card">
-                    <img
-                    src="{% static 'images/elechek.jpg' %}"
-                    alt="ЭЛЕЧЕК — секрет национального головного убора"
-                    class="blog-card__image"
-                    >
-                    <h3 class="blog-card__title">
-                    ЭЛЕЧЕК — секрет национального головного убора
-                    </h3>
+                <!-- Card #1 - Культура -->
+                <a href="{% url 'blog_about' %}" class="blog-card blog-card--culture">
+                    <div class="blog-card__image-wrapper">
+                        <span class="blog-card__category">Культура</span>
+                        <img
+                        src="{% static 'images/elechek.jpg' %}"
+                        alt="ЭЛЕЧЕК — секрет национального головного убора"
+                        class="blog-card__image"
+                        >
+                    </div>
+                    <div class="blog-card__content">
+                        <h3 class="blog-card__title">
+                        ЭЛЕЧЕК — секрет национального головного убора
+                        </h3>
+                        <div class="blog-card__meta">
+                            <span class="blog-card__date">📅 Статья</span>
+                            <span class="blog-card__read-more">Читать →</span>
+                        </div>
+                    </div>
                 </a>
-                <a href="{% url 'blog_about1' %}" class="blog-card">
-                    <img
-                    src="{% static 'images/krpr1.webp' %}"
-                    alt="ЭЛЕЧЕК — секрет национального головного убора"
-                    class="blog-card__image"
-                    >
-                    <h3 class="blog-card__title">
-                    5 главных национальных праздников Кыргызстана
-                    </h3>
+                
+                <!-- Card #2 - Праздники -->
+                <a href="{% url 'blog_about1' %}" class="blog-card blog-card--tradition">
+                    <div class="blog-card__image-wrapper">
+                        <span class="blog-card__category">Традиции</span>
+                        <img
+                        src="{% static 'images/krpr1.webp' %}"
+                        alt="5 главных национальных праздников Кыргызстана"
+                        class="blog-card__image"
+                        >
+                    </div>
+                    <div class="blog-card__content">
+                        <h3 class="blog-card__title">
+                        5 главных национальных праздников Кыргызстана
+                        </h3>
+                        <div class="blog-card__meta">
+                            <span class="blog-card__date">📅 Статья</span>
+                            <span class="blog-card__read-more">Читать →</span>
+                        </div>
+                    </div>
                 </a>
-                <a href="{% url 'blog_about2' %}" class="blog-card">
-                    <img
-                    src="{% static 'images/urta1.jpg' %}"
-                    alt="ЭЛЕЧЕК — секрет национального головного убора"
-                    class="blog-card__image"
-                    >
-                    <h3 class="blog-card__title">
-                    Юрта
-                    </h3>
+                
+                <!-- Card #3 - Традиции -->
+                <a href="{% url 'blog_about2' %}" class="blog-card blog-card--tradition">
+                    <div class="blog-card__image-wrapper">
+                        <span class="blog-card__category">Традиции</span>
+                        <img
+                        src="{% static 'images/urta1.jpg' %}"
+                        alt="Юрта"
+                        class="blog-card__image"
+                        >
+                    </div>
+                    <div class="blog-card__content">
+                        <h3 class="blog-card__title">
+                        Юрта — традиционное жилище кочевников
+                        </h3>
+                        <div class="blog-card__meta">
+                            <span class="blog-card__date">📅 Статья</span>
+                            <span class="blog-card__read-more">Читать →</span>
+                        </div>
+                    </div>
                 </a>
-                <a href="{% url 'blog_about3' %}" class="blog-card">
-                    <img
-                    src="{% static 'images/epos.jpg' %}"
-                    alt="ЭЛЕЧЕК — секрет национального головного убора"
-                    class="blog-card__image"
-                    >
-                    <h3 class="blog-card__title">
-                    Эпос Манас
-                    </h3>
+                
+                <!-- Card #4 - История -->
+                <a href="{% url 'blog_about3' %}" class="blog-card blog-card--history">
+                    <div class="blog-card__image-wrapper">
+                        <span class="blog-card__category">История</span>
+                        <img
+                        src="{% static 'images/epos.jpg' %}"
+                        alt="Эпос Манас"
+                        class="blog-card__image"
+                        >
+                    </div>
+                    <div class="blog-card__content">
+                        <h3 class="blog-card__title">
+                        Эпос Манас — великое наследие кыргызского народа
+                        </h3>
+                        <div class="blog-card__meta">
+                            <span class="blog-card__date">📅 Статья</span>
+                            <span class="blog-card__read-more">Читать →</span>
+                        </div>
+                    </div>
                 </a>
-                <a href="{% url 'blog_about4' %}" class="blog-card">
-                    <img
-                    src="{% static 'images/nacOd.jpg' %}"
-                    alt="ЭЛЕЧЕК — секрет национального головного убора"
-                    class="blog-card__image"
-                    >
-                    <h3 class="blog-card__title">
-                    Национальная одежда кыргызов
-                    </h3>
+                
+                <!-- Card #5 - Культура -->
+                <a href="{% url 'blog_about4' %}" class="blog-card blog-card--culture">
+                    <div class="blog-card__image-wrapper">
+                        <span class="blog-card__category">Культура</span>
+                        <img
+                        src="{% static 'images/nacOd.jpg' %}"
+                        alt="Национальная одежда кыргызов"
+                        class="blog-card__image"
+                        >
+                    </div>
+                    <div class="blog-card__content">
+                        <h3 class="blog-card__title">
+                        Национальная одежда кыргызов
+                        </h3>
+                        <div class="blog-card__meta">
+                            <span class="blog-card__date">📅 Статья</span>
+                            <span class="blog-card__read-more">Читать →</span>
+                        </div>
+                    </div>
                 </a>
-                <a href="{% url 'blog_about5' %}" class="blog-card">
-                    <img
-                    src="{% static 'images/kyrgyz_dishes.jpg' %}"
-                    alt="ЭЛЕЧЕК — секрет национального головного убора"
-                    class="blog-card__image"
-                    >
-                    <h3 class="blog-card__title">
-                    Национальная блюда кыргызов
-                    </h3>
+                
+                <!-- Card #6 - Еда -->
+                <a href="{% url 'blog_about5' %}" class="blog-card blog-card--food">
+                    <div class="blog-card__image-wrapper">
+                        <span class="blog-card__category">Кухня</span>
+                        <img
+                        src="{% static 'images/kyrgyz_dishes.jpg' %}"
+                        alt="Национальная блюда кыргызов"
+                        class="blog-card__image"
+                        >
+                    </div>
+                    <div class="blog-card__content">
+                        <h3 class="blog-card__title">
+                        Национальные блюда кыргызов
+                        </h3>
+                        <div class="blog-card__meta">
+                            <span class="blog-card__date">📅 Статья</span>
+                            <span class="blog-card__read-more">Читать →</span>
+                        </div>
+                    </div>
                 </a>
-                <a href="{% url 'blog_about6' %}" class="blog-card">
-                    <img
-                    src="{% static 'images/trad.webp' %}"
-                    alt="ЭЛЕЧЕК — секрет национального головного убора"
-                    class="blog-card__image"
-                    >
-                    <h3 class="blog-card__title">
-                    10 традиций кыргызов, которые удивят туристов
-                    </h3>
+                
+                <!-- Card #7 - Традиции -->
+                <a href="{% url 'blog_about6' %}" class="blog-card blog-card--tradition">
+                    <div class="blog-card__image-wrapper">
+                        <span class="blog-card__category">Традиции</span>
+                        <img
+                        src="{% static 'images/trad.webp' %}"
+                        alt="10 традиций кыргызов, которые удивят туристов"
+                        class="blog-card__image"
+                        >
+                    </div>
+                    <div class="blog-card__content">
+                        <h3 class="blog-card__title">
+                        10 традиций кыргызов, которые удивят туристов
+                        </h3>
+                        <div class="blog-card__meta">
+                            <span class="blog-card__date">📅 Статья</span>
+                            <span class="blog-card__read-more">Читать →</span>
+                        </div>
+                    </div>
                 </a>
-                <a href="{% url 'blog_about7' %}" class="blog-card">
-                    <img
-                    src="{% static 'images/igrytrad.jpg' %}"
-                    alt="ЭЛЕЧЕК — секрет национального головного убора"
-                    class="blog-card__image"
-                    >
-                    <h3 class="blog-card__title">
-                    Традиционные игры кыргызов
-                    </h3>
+                
+                <!-- Card #8 - Традиции -->
+                <a href="{% url 'blog_about7' %}" class="blog-card blog-card--tradition">
+                    <div class="blog-card__image-wrapper">
+                        <span class="blog-card__category">Традиции</span>
+                        <img
+                        src="{% static 'images/igrytrad.jpg' %}"
+                        alt="Традиционные игры кыргызов"
+                        class="blog-card__image"
+                        >
+                    </div>
+                    <div class="blog-card__content">
+                        <h3 class="blog-card__title">
+                        Традиционные игры кыргызов
+                        </h3>
+                        <div class="blog-card__meta">
+                            <span class="blog-card__date">📅 Статья</span>
+                            <span class="blog-card__read-more">Читать →</span>
+                        </div>
+                    </div>
                 </a>
-                <a href="{% url 'blog_about8' %}" class="blog-card">
-                    <img
-                    src="{% static 'images/kyrgyzstan-nature.webp' %}"
-                    alt="ЭЛЕЧЕК — секрет национального головного убора"
-                    class="blog-card__image"
-                    >
-                    <h3 class="blog-card__title">
-                    Природа Кыргызстана: жемчужины гор и озёр
-                    </h3>
+                
+                <!-- Card #9 - Природа -->
+                <a href="{% url 'blog_about8' %}" class="blog-card blog-card--nature">
+                    <div class="blog-card__image-wrapper">
+                        <span class="blog-card__category">Природа</span>
+                        <img
+                        src="{% static 'images/kyrgyzstan-nature.webp' %}"
+                        alt="Природа Кыргызстана: жемчужины гор и озёр"
+                        class="blog-card__image"
+                        >
+                    </div>
+                    <div class="blog-card__content">
+                        <h3 class="blog-card__title">
+                        Природа Кыргызстана: жемчужины гор и озёр
+                        </h3>
+                        <div class="blog-card__meta">
+                            <span class="blog-card__date">📅 Статья</span>
+                            <span class="blog-card__read-more">Читать →</span>
+                        </div>
+                    </div>
                 </a>
             </div>
         </div>
