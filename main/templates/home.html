@@ -12,9 +12,10 @@
 
     <!-- Хедер с фоном -->
     <header class="header-section">
-        <video class="header-video" id="mainVideo" autoplay muted loop playsinline>
+        <video class="header-video" id="mainVideo" autoplay muted loop playsinline style="display: none;">
             <source src="{% static 'images/mainback3.mp4' %}" type="video/mp4">
         </video>
+        <div class="header-background-image" id="mainBackgroundImage" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; background-repeat: no-repeat; z-index: -1;"></div>
         <!-- Внутри него фиксированный navbar -->
         <div class="navbar">
             <nav class="nav-container">
@@ -379,8 +380,156 @@
 //         track.scrollLeft += e.deltaY * 1.5;    // 1.5 — скорость, можно подкорректировать
 //   });
 //   ====================================================
-// Загрузка видео главной страницы
+// Загрузка фона главной страницы (изображение или видео)
+async function loadMainBackground() {
+  try {
+    // Добавляем уникальный timestamp для обхода кеша API
+    const apiUrl = '/api/main-background?t=' + Date.now() + '&r=' + Math.random();
+    const response = await fetch(apiUrl, { cache: 'no-store' });
+    const data = await response.json();
+    
+    const videoElement = document.getElementById('mainVideo');
+    const imageElement = document.getElementById('mainBackgroundImage');
+    
+    if (!videoElement || !imageElement) {
+      console.error('Элементы фона не найдены!');
+      return;
+    }
+    
+    if (!data || !data.path) {
+      console.warn('Путь к фону не получен из API:', data);
+      return;
+    }
+    
+    console.log('=== Загрузка фона ===');
+    console.log('Тип:', data.type);
+    console.log('Путь:', data.path);
+    
+    // Добавляем уникальный timestamp к URL для обхода кеша браузера
+    const timestamp = Date.now();
+    const mediaUrl = data.path + (data.path.includes('?') ? '&' : '?') + 't=' + timestamp + '&r=' + Math.random();
+    
+    if (data.type === 'image') {
+      // Используем изображение как фон
+      console.log('Используем фоновое изображение');
+      
+      // Скрываем видео
+      videoElement.style.display = 'none';
+      
+      // Показываем и устанавливаем изображение
+      imageElement.style.display = 'block';
+      imageElement.style.backgroundImage = `url('${mediaUrl}')`;
+      
+    } else {
+      // Используем видео как фон
+      console.log('Используем видео как фон');
+      
+      // Скрываем изображение
+      imageElement.style.display = 'none';
+      
+      // Показываем и обновляем видео
+      videoElement.style.display = 'block';
+      
+      // Получаем базовый путь без параметров для сравнения
+      const basePath = data.path.split('?')[0];
+      const currentSource = videoElement.querySelector('source');
+      const currentSrc = currentSource ? currentSource.getAttribute('src') || currentSource.src : '';
+      const currentBasePath = currentSrc ? currentSrc.split('?')[0] : '';
+      
+      // Обновляем видео, если путь изменился или если это первая загрузка
+      if (currentBasePath !== basePath || !currentBasePath) {
+        console.log('Обновляю видео:', currentBasePath || '(нет)', '->', basePath);
+        
+        // Сохраняем родительский элемент и его атрибуты
+        const parent = videoElement.parentElement;
+        const className = videoElement.className;
+        const id = videoElement.id;
+        const style = videoElement.getAttribute('style');
+        
+        // Полностью удаляем старый video элемент
+        videoElement.remove();
+        
+        // Создаем новый video элемент с нуля
+        const newVideo = document.createElement('video');
+        newVideo.id = id;
+        newVideo.className = className;
+        if (style) newVideo.setAttribute('style', style);
+        newVideo.style.display = 'block';
+        newVideo.loop = true;
+        newVideo.autoplay = true;
+        newVideo.muted = true;
+        newVideo.playsInline = true;
+        newVideo.preload = 'auto';
+        
+        // Создаем новый source элемент
+        const newSource = document.createElement('source');
+        newSource.src = mediaUrl;
+        newSource.type = 'video/mp4';
+        newVideo.appendChild(newSource);
+        
+        // Вставляем новый video элемент на место старого
+        parent.appendChild(newVideo);
+        
+        console.log('Новый video элемент создан и вставлен');
+        
+        // Пытаемся воспроизвести после загрузки
+        const playVideo = () => {
+          console.log('Попытка воспроизвести видео');
+          newVideo.play().catch(err => {
+            console.log('Автовоспроизведение заблокировано браузером:', err);
+          });
+        };
+        
+        newVideo.addEventListener('loadeddata', () => {
+          console.log('Видео загружено (loadeddata)');
+          playVideo();
+        }, { once: true });
+        
+        newVideo.addEventListener('canplay', () => {
+          console.log('Видео готово к воспроизведению (canplay)');
+          playVideo();
+        }, { once: true });
+        
+        newVideo.addEventListener('canplaythrough', () => {
+          console.log('Видео готово к воспроизведению полностью (canplaythrough)');
+          playVideo();
+        }, { once: true });
+        
+        newVideo.addEventListener('error', (e) => {
+          console.error('Ошибка загрузки видео:', e);
+        }, { once: true });
+        
+        // Принудительно загружаем видео
+        newVideo.load();
+        
+        // Также пытаемся воспроизвести через небольшую задержку
+        setTimeout(playVideo, 500);
+        setTimeout(playVideo, 1000);
+        setTimeout(playVideo, 2000);
+      } else {
+        console.log('Путь видео не изменился, обновляю только timestamp для обхода кеша');
+        // Если путь тот же, просто обновляем timestamp для обхода кеша
+        if (currentSource) {
+          currentSource.src = mediaUrl;
+          videoElement.load();
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Ошибка при загрузке фона:', error);
+    // Используем видео по умолчанию, если API недоступен
+    const videoElement = document.getElementById('mainVideo');
+    const imageElement = document.getElementById('mainBackgroundImage');
+    if (videoElement) videoElement.style.display = 'block';
+    if (imageElement) imageElement.style.display = 'none';
+  }
+}
+
+// Загрузка видео главной страницы (старая функция для обратной совместимости)
 async function loadMainVideo() {
+  // Перенаправляем на новую функцию
+  await loadMainBackground();
+}
   try {
     // Добавляем уникальный timestamp для обхода кеша API
     const apiUrl = '/api/main-video?t=' + Date.now() + '&r=' + Math.random();
@@ -818,36 +967,36 @@ function initCarousel() {
   let autoPlayInterval = null;
   
   console.log('Инициализация карусели успешна:', cards.length, 'карточек');
-  
+
   function scrollToIndex(index) {
     const card = cards[index];
     const trackWidth = track.clientWidth;
     const cardWidth = card.offsetWidth;
     const cardOffset = card.offsetLeft;
-    
+
     // хотим центрировать:
     let scrollLeft = cardOffset - (trackWidth - cardWidth) / 2;
-    
+
     // clamp: не выходить за границы
     const maxScroll = track.scrollWidth - trackWidth;
     scrollLeft = Math.max(0, Math.min(scrollLeft, maxScroll));
-    
+
     track.scrollTo({ left: scrollLeft, behavior: 'smooth' });
-    
+
     // обновляем вид стрелок и точек
     updateButtons();
     updateDots();
   }
-  
+
   function updateButtons() {
     prevBtn.style.visibility = (currentIndex === 0) ? 'hidden' : 'visible';
     nextBtn.style.visibility = (currentIndex === cards.length - 1) ? 'hidden' : 'visible';
   }
-  
+
   function updateDots() {
     dots.forEach(dot => dot.classList.remove('current-dot'));
     if (dots[currentIndex]) {
-      dots[currentIndex].classList.add('current-dot');
+    dots[currentIndex].classList.add('current-dot');
     }
   }
   
@@ -891,7 +1040,7 @@ function initCarousel() {
       startAutoPlay();
     }, 4000);
   }
-  
+
   // клики по стрелкам
   prevBtn.addEventListener('click', (e) => {
     e.preventDefault();
@@ -920,7 +1069,7 @@ function initCarousel() {
       console.log('Уже на последнем элементе');
     }
   });
-  
+
   // клики по точкам
   dotsNav.addEventListener('click', (e) => {
     e.preventDefault();
@@ -944,7 +1093,7 @@ function initCarousel() {
   nextBtn.addEventListener('mouseenter', stopAutoPlay);
   prevBtn.addEventListener('mouseleave', startAutoPlay);
   nextBtn.addEventListener('mouseleave', startAutoPlay);
-  
+
   // первая инициализация
   console.log('Первая инициализация, прокрутка к индексу 0');
   scrollToIndex(0);
@@ -957,8 +1106,8 @@ function initCarousel() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Загружаем видео главной страницы
-  loadMainVideo();
+  // Загружаем фон главной страницы (изображение или видео)
+  loadMainBackground();
   
   // Загружаем галерею
   loadHomeGallery();
@@ -966,10 +1115,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // Загружаем виды туров (эта функция сама вызовет initCarousel после загрузки)
   loadTourTypes();
   
-  // Периодически проверяем обновление видео (каждые 30 секунд)
-  // Это нужно, если видео было обновлено через админ-панель, пока страница открыта
+  // Периодически проверяем обновление фона (каждые 30 секунд)
+  // Это нужно, если фон был обновлен через админ-панель, пока страница открыта
   setInterval(() => {
-    loadMainVideo();
+    loadMainBackground();
   }, 30000); // Проверяем каждые 30 секунд
 });
 
@@ -1088,7 +1237,7 @@ document.addEventListener('DOMContentLoaded', () => {
   form.addEventListener('submit', e => {
     e.preventDefault();
     const data = new FormData(form);
-    
+
     // На главной странице tourId и tourTitle не передаем (общая заявка)
 
     fetch('/submit-application', {

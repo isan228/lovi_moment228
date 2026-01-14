@@ -91,6 +91,47 @@ app.get('/api/main-video', async (req, res) => {
   }
 });
 
+// Получить фон главной страницы (изображение или видео)
+app.get('/api/main-background', async (req, res) => {
+  try {
+    // Отключаем кеширование для этого endpoint
+    res.set({
+      'Cache-Control': 'no-store, no-cache, must-revalidate, private',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+    
+    const { Settings } = require('./models');
+    
+    // Сначала проверяем наличие фонового изображения
+    const backgroundImageSetting = await Settings.findOne({ where: { key: 'background_image' } });
+    
+    if (backgroundImageSetting && backgroundImageSetting.value) {
+      // Если есть фоновое изображение, возвращаем его
+      return res.json({ 
+        type: 'image',
+        path: backgroundImageSetting.value 
+      });
+    }
+    
+    // Если фонового изображения нет, возвращаем видео
+    const videoSetting = await Settings.findOne({ where: { key: 'main_video' } });
+    const videoPath = videoSetting && videoSetting.value ? videoSetting.value : '/static/images/mainback3.mp4';
+    
+    res.json({ 
+      type: 'video',
+      path: videoPath 
+    });
+  } catch (error) {
+    console.error('Ошибка при получении фона:', error);
+    // Возвращаем видео по умолчанию, если БД недоступна
+    res.json({ 
+      type: 'video',
+      path: '/static/images/mainback3.mp4' 
+    });
+  }
+});
+
 // Получить активные виды туров (публичные)
 app.get('/api/tour-types', async (req, res) => {
   try {

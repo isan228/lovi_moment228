@@ -2182,33 +2182,67 @@ async function loadStats() {
 // ========== НАСТРОЙКИ ==========
 async function loadSettings() {
     try {
-        // Загружаем видео и статистику параллельно
-        const [videoResponse, statsResponse] = await Promise.all([
+        // Загружаем видео, фоновое изображение и статистику параллельно
+        const [videoResponse, backgroundImageResponse, statsResponse] = await Promise.all([
             apiFetch('/api/admin/settings/main_video'),
+            apiFetch('/api/admin/settings/background_image'),
             apiFetch('/api/admin/settings/stats/all')
         ]);
         
         const setting = await videoResponse.json();
+        const backgroundImageSetting = await backgroundImageResponse.json();
         const stats = await statsResponse.json();
         
         console.log('Загруженные настройки видео:', setting);
+        console.log('Загруженные настройки фона:', backgroundImageSetting);
         console.log('Значение видео:', setting.value);
         
         // Проверяем, что setting существует и имеет значение
         const videoValue = setting && setting.value ? setting.value : null;
         const hasCustomVideo = videoValue && videoValue !== '/static/images/mainback3.mp4';
         
+        const backgroundImageValue = backgroundImageSetting && backgroundImageSetting.value ? backgroundImageSetting.value : null;
+        const hasCustomBackground = backgroundImageValue !== null;
+        
         const content = document.getElementById('settingsContent');
         content.innerHTML = `
             <div style="display: flex; flex-direction: column; gap: 20px;">
+                <!-- Фоновое изображение главной страницы -->
+                <div class="card">
+                    <h3>Фоновое изображение главной страницы</h3>
+                    <p style="color: #666; margin-bottom: 15px; font-size: 14px;">Если загружено фоновое изображение, оно будет использоваться вместо видео. Если изображения нет, будет использоваться видео.</p>
+                    <form id="backgroundImageForm" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label>Загрузить новое фоновое изображение</label>
+                            <input type="file" id="mainBackgroundImageFile" accept="image/*">
+                            <small style="color: #666; display: block; margin-top: 5px;">Формат: JPG, PNG, GIF, WEBP (макс. 50MB)</small>
+                            <div id="backgroundImagePreview" style="margin-top: 10px;"></div>
+                        </div>
+                        ${hasCustomBackground ? `
+                            <div class="form-group" style="margin-top: 15px;">
+                                <label>Текущее фоновое изображение:</label>
+                                <p style="color: #666; margin-bottom: 5px; font-size: 12px;">Путь: ${backgroundImageValue}</p>
+                                <img src="${backgroundImageValue}" alt="Текущее фоновое изображение" style="max-width: 100%; max-height: 300px; border-radius: 8px; margin-top: 10px; object-fit: contain;">
+                                <button type="button" id="deleteBackgroundImageBtn" class="btn btn-danger" style="margin-top: 10px;">Удалить фоновое изображение</button>
+                            </div>
+                        ` : `
+                            <div class="form-group" style="margin-top: 15px;">
+                                <p style="color: #666;">Фоновое изображение не загружено. Будет использоваться видео.</p>
+                            </div>
+                        `}
+                        <button type="submit" class="btn btn-success">Сохранить новое изображение</button>
+                    </form>
+                </div>
+                
                 <!-- Видео главной страницы -->
                 <div class="card">
                     <h3>Видео главной страницы</h3>
+                    <p style="color: #666; margin-bottom: 15px; font-size: 14px;">Видео будет использоваться, если фоновое изображение не загружено.</p>
                     <form id="videoForm" enctype="multipart/form-data">
                         <div class="form-group">
                             <label>Загрузить новое видео</label>
                             <input type="file" id="mainVideoFile" accept="video/*">
-                            <small style="color: #666; display: block; margin-top: 5px;">Формат: MP4, WEBM, OGG</small>
+                            <small style="color: #666; display: block; margin-top: 5px;">Формат: MP4, WEBM, OGG (макс. 500MB)</small>
                             <div id="videoPreview" style="margin-top: 10px;"></div>
                         </div>
                         ${hasCustomVideo ? `
@@ -2255,6 +2289,94 @@ async function loadSettings() {
                 </div>
             </div>
         `;
+        
+        // Превью фонового изображения при выборе файла
+        const backgroundImageInput = document.getElementById('mainBackgroundImageFile');
+        if (backgroundImageInput) {
+            backgroundImageInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                const preview = document.getElementById('backgroundImagePreview');
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        preview.innerHTML = `
+                            <p style="color: #666; margin-bottom: 5px;">Предпросмотр:</p>
+                            <img src="${e.target.result}" alt="Предпросмотр" style="max-width: 100%; max-height: 300px; border-radius: 8px; object-fit: contain;">
+                        `;
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    preview.innerHTML = '';
+                }
+            });
+        }
+        
+        // Обработка отправки формы фонового изображения
+        const backgroundImageForm = document.getElementById('backgroundImageForm');
+        if (backgroundImageForm) {
+            backgroundImageForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData();
+                const imageFile = document.getElementById('mainBackgroundImageFile').files[0];
+                
+                if (!imageFile) {
+                    alert('Выберите изображение');
+                    return;
+                }
+                
+                formData.append('image', imageFile);
+                
+                console.log('Отправка изображения:', imageFile.name, 'размер:', imageFile.size, 'тип:', imageFile.type);
+                
+                try {
+                    const response = await apiFetch('/api/admin/settings/background_image', {
+                        method: 'PUT',
+                        body: formData
+                    });
+                    
+                    if (response.ok) {
+                        const result = await response.json();
+                        console.log('Изображение успешно загружено:', result);
+                        alert('Фоновое изображение успешно обновлено! Старое изображение удалено. Обновите страницу сайта (Ctrl+F5) чтобы увидеть изменения.');
+                        loadSettings();
+                    } else {
+                        const error = await response.json();
+                        console.error('Ошибка при загрузке изображения:', error);
+                        alert('Ошибка: ' + (error.error || 'Не удалось обновить изображение'));
+                    }
+                } catch (error) {
+                    console.error('Ошибка при загрузке изображения:', error);
+                    alert('Ошибка при загрузке изображения: ' + (error.message || 'Неизвестная ошибка'));
+                }
+            });
+        }
+        
+        // Обработка удаления фонового изображения
+        const deleteBackgroundImageBtn = document.getElementById('deleteBackgroundImageBtn');
+        if (deleteBackgroundImageBtn) {
+            deleteBackgroundImageBtn.addEventListener('click', async () => {
+                if (!confirm('Вы уверены, что хотите удалить фоновое изображение? После удаления будет использоваться видео.')) {
+                    return;
+                }
+                
+                try {
+                    const response = await apiFetch('/api/admin/settings/background_image', {
+                        method: 'DELETE'
+                    });
+                    
+                    if (response.ok) {
+                        alert('Фоновое изображение успешно удалено! Будет использоваться видео.');
+                        loadSettings();
+                    } else {
+                        const error = await response.json();
+                        alert('Ошибка: ' + (error.error || 'Не удалось удалить изображение'));
+                    }
+                } catch (error) {
+                    alert('Ошибка при удалении изображения');
+                    console.error(error);
+                }
+            });
+        }
         
         // Превью видео при выборе файла
         const videoInput = document.getElementById('mainVideoFile');

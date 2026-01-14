@@ -36,6 +36,36 @@ const uploadVideo = multer({
   limits: { fileSize: 500 * 1024 * 1024 } // 500MB (увеличено для больших видео)
 });
 
+// Настройка Multer для загрузки изображений (фона)
+const imageStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadPath = path.join(__dirname, '../../public/static/images');
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'main-background-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const uploadImage = multer({
+  storage: imageStorage,
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpg|jpeg|png|gif|webp/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype) || file.mimetype.startsWith('image/');
+    if (mimetype || extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Только изображения разрешены! (JPG, PNG, GIF, WEBP)'));
+    }
+  },
+  limits: { fileSize: 50 * 1024 * 1024 } // 50MB
+});
+
 // Получить все настройки
 router.get('/', requireAuth, async (req, res) => {
   try {
@@ -72,6 +102,25 @@ router.get('/main_video', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Ошибка при получении видео:', error);
     res.status(500).json({ error: 'Ошибка при получении видео' });
+  }
+});
+
+// Получить настройку background_image (специальный маршрут перед общим)
+router.get('/background_image', requireAuth, async (req, res) => {
+  try {
+    const setting = await Settings.findOne({
+      where: { key: 'background_image' }
+    });
+    
+    // Если настройка не найдена, возвращаем null (будет использоваться видео)
+    if (!setting) {
+      return res.json({ key: 'background_image', value: null });
+    }
+    
+    res.json({ key: setting.key, value: setting.value });
+  } catch (error) {
+    console.error('Ошибка при получении фонового изображения:', error);
+    res.status(500).json({ error: 'Ошибка при получении фонового изображения' });
   }
 });
 
@@ -169,7 +218,7 @@ router.put('/main_video', requireAuth, (req, res, next) => {
             try {
               fs.unlinkSync(filePath);
               console.log('Удалено старое видео:', file);
-            } catch (err) {
+        } catch (err) {
               console.error('Ошибка при удалении файла', file, ':', err);
             }
           }
@@ -224,6 +273,162 @@ router.put('/main_video', requireAuth, (req, res, next) => {
     }
     console.error('Ошибка при обновлении видео:', error);
     res.status(500).json({ error: 'Ошибка при обновлении видео' });
+  }
+});
+
+// Обновить фоновое изображение главной страницы (с загрузкой файла)
+// ВАЖНО: должен быть ПЕРЕД router.put('/:key'), иначе будет перехвачен общим маршрутом
+router.put('/background_image', requireAuth, (req, res, next) => {
+  console.log('Запрос на загрузку фонового изображения. Content-Type:', req.headers['content-type']);
+  
+  uploadImage.single('image')(req, res, (err) => {
+    if (err) {
+      console.error('Ошибка multer при загрузке изображения:', err);
+      if (err instanceof multer.MulterError) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.status(400).json({ error: 'Файл слишком большой. Максимальный размер: 50MB' });
+        }
+        return res.status(400).json({ error: 'Ошибка загрузки файла: ' + err.message });
+      }
+      return res.status(400).json({ error: err.message || 'Ошибка при загрузке файла' });
+    }
+    console.log('Файл успешно загружен multer. req.file:', req.file ? {
+      filename: req.file.filename,
+      size: req.file.size,
+      mimetype: req.file.mimetype
+    } : 'null');
+    next();
+  });
+}, async (req, res) => {
+  try {
+    if (!req.file) {
+      console.error('Файл не загружен. req.file:', req.file);
+      return res.status(400).json({ error: 'Изображение не загружено. Убедитесь, что вы выбрали файл и он имеет правильный формат (JPG, PNG, GIF, WEBP)' });
+    }
+    
+    console.log('Обработка загруженного файла:', req.file.filename);
+
+    const imagePath = `/static/images/${req.file.filename}`;
+    const newFileName = req.file.filename;
+    
+    // Удаляем ВСЕ старые изображения main-background-*, КРОМЕ только что загруженного
+    const imagesDir = path.join(__dirname, '../../public/static/images');
+    if (fs.existsSync(imagesDir)) {
+      try {
+        const files = fs.readdirSync(imagesDir);
+        files.forEach(file => {
+          // Удаляем все файлы, начинающиеся с main-background-, но НЕ новый файл
+          if (file.startsWith('main-background-') && file !== newFileName) {
+            const filePath = path.join(imagesDir, file);
+            try {
+              fs.unlinkSync(filePath);
+              console.log('Удалено старое изображение:', file);
+            } catch (err) {
+              console.error('Ошибка при удалении файла', file, ':', err);
+            }
+          }
+        });
+      } catch (err) {
+        console.error('Ошибка при чтении директории:', err);
+      }
+    }
+
+    // Сохраняем путь к новому изображению
+    const [setting, created] = await Settings.findOrCreate({
+      where: { key: 'background_image' },
+      defaults: { value: imagePath }
+    });
+
+    if (!created) {
+      // Удаляем старое изображение, если оно существует
+      if (setting.value && setting.value.startsWith('/static/images/main-background-')) {
+        const oldImagePathPublic = path.join(__dirname, '../../public', setting.value);
+        if (fs.existsSync(oldImagePathPublic)) {
+          try {
+            fs.unlinkSync(oldImagePathPublic);
+            console.log('Удален старый файл изображения:', oldImagePathPublic);
+          } catch (err) {
+            console.error('Ошибка при удалении старого файла изображения:', err);
+          }
+        }
+      }
+      setting.value = imagePath;
+      await setting.save();
+    }
+
+    res.json({ key: setting.key, value: setting.value });
+  } catch (error) {
+    // Удаляем загруженный файл при ошибке
+    if (req.file && fs.existsSync(req.file.path)) {
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (unlinkError) {
+        console.error('Ошибка при удалении файла:', unlinkError);
+      }
+    }
+    console.error('Ошибка при обновлении фонового изображения:', error);
+    res.status(500).json({ error: 'Ошибка при обновлении фонового изображения' });
+  }
+});
+
+// Удалить фоновое изображение главной страницы
+router.delete('/background_image', requireAuth, async (req, res) => {
+  try {
+    const setting = await Settings.findOne({ where: { key: 'background_image' } });
+    
+    if (!setting) {
+      return res.status(404).json({ error: 'Настройка не найдена' });
+    }
+
+    // Удаляем файл изображения, если он существует
+    if (setting.value && setting.value.startsWith('/static/images/main-background-')) {
+      const imagePathPublic = path.join(__dirname, '../../public', setting.value);
+      const imagePathStatic = path.join(__dirname, '../../', setting.value);
+      
+      if (fs.existsSync(imagePathPublic)) {
+        try {
+          fs.unlinkSync(imagePathPublic);
+          console.log('Удален файл изображения:', imagePathPublic);
+        } catch (err) {
+          console.error('Ошибка при удалении файла изображения:', err);
+        }
+      } else if (fs.existsSync(imagePathStatic)) {
+        try {
+          fs.unlinkSync(imagePathStatic);
+          console.log('Удален файл изображения:', imagePathStatic);
+        } catch (err) {
+          console.error('Ошибка при удалении файла изображения:', err);
+        }
+      }
+      
+      // Также удаляем все другие main-background-* файлы
+      const imagesDir = path.join(__dirname, '../../public/static/images');
+      if (fs.existsSync(imagesDir)) {
+        try {
+          const files = fs.readdirSync(imagesDir);
+          files.forEach(file => {
+            if (file.startsWith('main-background-')) {
+              const filePath = path.join(imagesDir, file);
+              try {
+                fs.unlinkSync(filePath);
+                console.log('Удалено старое изображение:', file);
+              } catch (err) {
+                console.error('Ошибка при удалении файла', file, ':', err);
+              }
+            }
+          });
+        } catch (err) {
+          console.error('Ошибка при чтении директории:', err);
+        }
+      }
+    }
+
+    // Удаляем настройку из БД
+    await setting.destroy();
+    res.json({ success: true, message: 'Фоновое изображение удалено' });
+  } catch (error) {
+    console.error('Ошибка при удалении фонового изображения:', error);
+    res.status(500).json({ error: 'Ошибка при удалении фонового изображения' });
   }
 });
 
