@@ -69,6 +69,12 @@ transporter.verify((error, success) => {
 app.use('/api/admin', require('./routes/admin'));
 app.use('/admin', require('./routes/admin')); // Также поддерживаем старый путь для HTML страниц
 
+// Sitemap
+app.get('/sitemap.xml', (req, res) => {
+  res.set('Content-Type', 'application/xml');
+  res.sendFile(path.join(__dirname, 'sitemap.xml'));
+});
+
 // Публичные API endpoints для главной страницы
 // Эти endpoints работают даже если БД недоступна (возвращают значения по умолчанию)
 app.get('/api/main-video', async (req, res) => {
