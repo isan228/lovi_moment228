@@ -4,7 +4,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>О туре</title>
+  <title id="pageTitle">Тур по Центральной Азии - Lovi Moment Travel</title>
+  <meta name="description" id="pageDescription" content="Детальная информация о туре по Центральной Азии. Программа тура, даты, цены, описание маршрута.">
+  <meta name="keywords" content="туры по Центральной Азии, авторские туры, экскурсионные туры, групповые туры, индивидуальные туры, активный отдых, культурные туры, этнотуры, приключенческие туры, туры под ключ">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" id="pageCanonical" href="https://lovimoment-travel.com/tour-about/">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" id="ogUrl" content="https://lovimoment-travel.com/tour-about/">
+  <meta property="og:title" id="ogTitle" content="Тур по Центральной Азии - Lovi Moment Travel">
+  <meta property="og:description" id="ogDescription" content="Детальная информация о туре по Центральной Азии.">
+  
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
   <script src="{% static 'js/ornament-background.js' %}" defer></script>
 </head>
@@ -765,6 +776,9 @@ async function loadTour() {
     const tour = await response.json();
     console.log('Тур загружен:', tour);
     
+    // Обновляем SEO мета-теги
+    updateSEOMetaTags(tour);
+    
     // Обновляем header
     updateTourHeader(tour);
     
@@ -787,6 +801,88 @@ async function loadTour() {
     console.error('Ошибка при загрузке тура:', error);
     document.getElementById('tourTitle').textContent = 'Тур не найден';
   }
+}
+
+// Обновление SEO мета-тегов
+function updateSEOMetaTags(tour) {
+  const tourTitle = tour.title || 'Тур по Центральной Азии';
+  const tourDescription = tour.description ? tour.description.substring(0, 160) + '...' : 'Детальная информация о туре по Центральной Азии. Программа тура, даты, цены, описание маршрута.';
+  const currentUrl = window.location.href;
+  const tourImage = tour.headerImage || tour.images?.[0]?.imagePath || 'https://lovimoment-travel.com/static/images/Lovi Moment logo.png';
+  
+  // Обновляем title
+  document.title = `${tourTitle} - Lovi Moment Travel | Туры по Центральной Азии`;
+  const titleEl = document.getElementById('pageTitle');
+  if (titleEl) titleEl.textContent = `${tourTitle} - Lovi Moment Travel`;
+  
+  // Обновляем description
+  const descEl = document.getElementById('pageDescription');
+  if (descEl) descEl.setAttribute('content', tourDescription);
+  
+  // Обновляем canonical
+  const canonicalEl = document.getElementById('pageCanonical');
+  if (canonicalEl) canonicalEl.setAttribute('href', currentUrl);
+  
+  // Обновляем Open Graph теги
+  const ogUrl = document.getElementById('ogUrl');
+  if (ogUrl) ogUrl.setAttribute('content', currentUrl);
+  
+  const ogTitle = document.getElementById('ogTitle');
+  if (ogTitle) ogTitle.setAttribute('content', `${tourTitle} - Lovi Moment Travel`);
+  
+  const ogDesc = document.getElementById('ogDescription');
+  if (ogDesc) ogDesc.setAttribute('content', tourDescription);
+  
+  // Добавляем og:image если его нет
+  let ogImage = document.querySelector('meta[property="og:image"]');
+  if (!ogImage) {
+    ogImage = document.createElement('meta');
+    ogImage.setAttribute('property', 'og:image');
+    document.head.appendChild(ogImage);
+  }
+  ogImage.setAttribute('content', tourImage);
+  
+  // Добавляем структурированные данные (Schema.org)
+  updateStructuredData(tour);
+}
+
+// Обновление структурированных данных (Schema.org)
+function updateStructuredData(tour) {
+  // Удаляем старые структурированные данные
+  const oldScript = document.getElementById('tour-structured-data');
+  if (oldScript) oldScript.remove();
+  
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "TouristTrip",
+    "name": tour.title || "Тур по Центральной Азии",
+    "description": tour.description || "Тур по Центральной Азии",
+    "provider": {
+      "@type": "TravelAgency",
+      "name": "Lovi Moment Travel",
+      "url": "https://lovimoment-travel.com"
+    },
+    "tourBookingPage": window.location.href,
+    "itinerary": {
+      "@type": "ItemList",
+      "itemListElement": tour.program ? (Array.isArray(tour.program) ? tour.program : JSON.parse(tour.program || '[]')).map((day, index) => ({
+        "@type": "ListItem",
+        "position": index + 1,
+        "name": day.title || `День ${index + 1}`,
+        "description": day.description || ""
+      })) : []
+    }
+  };
+  
+  if (tour.headerImage) {
+    structuredData.image = tour.headerImage;
+  }
+  
+  const script = document.createElement('script');
+  script.id = 'tour-structured-data';
+  script.type = 'application/ld+json';
+  script.textContent = JSON.stringify(structuredData);
+  document.head.appendChild(script);
 }
 
 // Обновление header
