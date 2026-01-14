@@ -69,6 +69,12 @@ transporter.verify((error, success) => {
 app.use('/api/admin', require('./routes/admin'));
 app.use('/admin', require('./routes/admin')); // Также поддерживаем старый путь для HTML страниц
 
+// Robots.txt
+app.get('/robots.txt', (req, res) => {
+  res.set('Content-Type', 'text/plain');
+  res.sendFile(path.join(__dirname, 'robots.txt'));
+});
+
 // Sitemap
 app.get('/sitemap.xml', (req, res) => {
   res.set('Content-Type', 'application/xml');
