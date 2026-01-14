@@ -66,6 +66,36 @@ const uploadImage = multer({
   limits: { fileSize: 50 * 1024 * 1024 } // 50MB
 });
 
+// Настройка Multer для загрузки декоративного фона (ornament)
+const ornamentStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadPath = path.join(__dirname, '../../public/static/images');
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'ornament-background-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const uploadOrnament = multer({
+  storage: ornamentStorage,
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpg|jpeg|png|gif|webp/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype) || file.mimetype.startsWith('image/');
+    if (mimetype || extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Только изображения разрешены! (JPG, PNG, GIF, WEBP)'));
+    }
+  },
+  limits: { fileSize: 50 * 1024 * 1024 } // 50MB
+});
+
 // Получить все настройки
 router.get('/', requireAuth, async (req, res) => {
   try {
@@ -121,6 +151,25 @@ router.get('/background_image', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Ошибка при получении фонового изображения:', error);
     res.status(500).json({ error: 'Ошибка при получении фонового изображения' });
+  }
+});
+
+// Получить настройку ornament_background (декоративный фон)
+router.get('/ornament_background', requireAuth, async (req, res) => {
+  try {
+    const setting = await Settings.findOne({
+      where: { key: 'ornament_background' }
+    });
+    
+    // Если настройка не найдена, возвращаем значение по умолчанию
+    if (!setting) {
+      return res.json({ key: 'ornament_background', value: '/static/images/ornament.png' });
+    }
+    
+    res.json({ key: setting.key, value: setting.value });
+  } catch (error) {
+    console.error('Ошибка при получении декоративного фона:', error);
+    res.status(500).json({ error: 'Ошибка при получении декоративного фона' });
   }
 });
 
@@ -368,6 +417,161 @@ router.put('/background_image', requireAuth, (req, res, next) => {
     }
     console.error('Ошибка при обновлении фонового изображения:', error);
     res.status(500).json({ error: 'Ошибка при обновлении фонового изображения' });
+  }
+});
+
+// Обновить декоративный фон (ornament) (с загрузкой файла)
+router.put('/ornament_background', requireAuth, (req, res, next) => {
+  console.log('Запрос на загрузку декоративного фона. Content-Type:', req.headers['content-type']);
+  
+  uploadOrnament.single('image')(req, res, (err) => {
+    if (err) {
+      console.error('Ошибка multer при загрузке изображения:', err);
+      if (err instanceof multer.MulterError) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.status(400).json({ error: 'Файл слишком большой. Максимальный размер: 50MB' });
+        }
+        return res.status(400).json({ error: 'Ошибка загрузки файла: ' + err.message });
+      }
+      return res.status(400).json({ error: err.message || 'Ошибка при загрузке файла' });
+    }
+    console.log('Файл успешно загружен multer. req.file:', req.file ? {
+      filename: req.file.filename,
+      size: req.file.size,
+      mimetype: req.file.mimetype
+    } : 'null');
+    next();
+  });
+}, async (req, res) => {
+  try {
+    if (!req.file) {
+      console.error('Файл не загружен. req.file:', req.file);
+      return res.status(400).json({ error: 'Изображение не загружено. Убедитесь, что вы выбрали файл и он имеет правильный формат (JPG, PNG, GIF, WEBP)' });
+    }
+    
+    console.log('Обработка загруженного файла:', req.file.filename);
+
+    const imagePath = `/static/images/${req.file.filename}`;
+    const newFileName = req.file.filename;
+    
+    // Удаляем ВСЕ старые изображения ornament-background-*, КРОМЕ только что загруженного
+    const imagesDir = path.join(__dirname, '../../public/static/images');
+    if (fs.existsSync(imagesDir)) {
+      try {
+        const files = fs.readdirSync(imagesDir);
+        files.forEach(file => {
+          // Удаляем все файлы, начинающиеся с ornament-background-, но НЕ новый файл
+          if (file.startsWith('ornament-background-') && file !== newFileName) {
+            const filePath = path.join(imagesDir, file);
+            try {
+              fs.unlinkSync(filePath);
+              console.log('Удалено старое изображение:', file);
+            } catch (err) {
+              console.error('Ошибка при удалении файла', file, ':', err);
+            }
+          }
+        });
+      } catch (err) {
+        console.error('Ошибка при чтении директории:', err);
+      }
+    }
+
+    // Сохраняем путь к новому изображению
+    const [setting, created] = await Settings.findOrCreate({
+      where: { key: 'ornament_background' },
+      defaults: { value: imagePath }
+    });
+
+    if (!created) {
+      // Удаляем старое изображение, если оно существует и не является дефолтным
+      if (setting.value && setting.value.startsWith('/static/images/ornament-background-')) {
+        const oldImagePathPublic = path.join(__dirname, '../../public', setting.value);
+        if (fs.existsSync(oldImagePathPublic)) {
+          try {
+            fs.unlinkSync(oldImagePathPublic);
+            console.log('Удален старый файл изображения:', oldImagePathPublic);
+          } catch (err) {
+            console.error('Ошибка при удалении старого файла изображения:', err);
+          }
+        }
+      }
+      setting.value = imagePath;
+      await setting.save();
+    }
+
+    res.json({ key: setting.key, value: setting.value });
+  } catch (error) {
+    // Удаляем загруженный файл при ошибке
+    if (req.file && fs.existsSync(req.file.path)) {
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (unlinkError) {
+        console.error('Ошибка при удалении файла:', unlinkError);
+      }
+    }
+    console.error('Ошибка при обновлении декоративного фона:', error);
+    res.status(500).json({ error: 'Ошибка при обновлении декоративного фона' });
+  }
+});
+
+// Удалить декоративный фон
+router.delete('/ornament_background', requireAuth, async (req, res) => {
+  try {
+    const setting = await Settings.findOne({ where: { key: 'ornament_background' } });
+    
+    if (!setting) {
+      return res.status(404).json({ error: 'Настройка не найдена' });
+    }
+
+    // Удаляем файл изображения, если он существует и не является дефолтным
+    if (setting.value && setting.value.startsWith('/static/images/ornament-background-')) {
+      const imagePathPublic = path.join(__dirname, '../../public', setting.value);
+      const imagePathStatic = path.join(__dirname, '../../', setting.value);
+      
+      if (fs.existsSync(imagePathPublic)) {
+        try {
+          fs.unlinkSync(imagePathPublic);
+          console.log('Удален файл изображения:', imagePathPublic);
+        } catch (err) {
+          console.error('Ошибка при удалении файла изображения:', err);
+        }
+      } else if (fs.existsSync(imagePathStatic)) {
+        try {
+          fs.unlinkSync(imagePathStatic);
+          console.log('Удален файл изображения:', imagePathStatic);
+        } catch (err) {
+          console.error('Ошибка при удалении файла изображения:', err);
+        }
+      }
+      
+      // Также удаляем все другие ornament-background-* файлы
+      const imagesDir = path.join(__dirname, '../../public/static/images');
+      if (fs.existsSync(imagesDir)) {
+        try {
+          const files = fs.readdirSync(imagesDir);
+          files.forEach(file => {
+            if (file.startsWith('ornament-background-')) {
+              const filePath = path.join(imagesDir, file);
+              try {
+                fs.unlinkSync(filePath);
+                console.log('Удалено старое изображение:', file);
+              } catch (err) {
+                console.error('Ошибка при удалении файла', file, ':', err);
+              }
+            }
+          });
+        } catch (err) {
+          console.error('Ошибка при чтении директории:', err);
+        }
+      }
+    }
+
+    // Удаляем настройку из БД (после удаления будет использоваться дефолтное значение)
+    await setting.destroy();
+    res.json({ success: true, message: 'Декоративный фон удален. Будет использоваться фон по умолчанию.' });
+  } catch (error) {
+    console.error('Ошибка при удалении декоративного фона:', error);
+    res.status(500).json({ error: 'Ошибка при удалении декоративного фона' });
   }
 });
 

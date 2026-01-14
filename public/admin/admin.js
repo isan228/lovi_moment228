@@ -2182,15 +2182,17 @@ async function loadStats() {
 // ========== НАСТРОЙКИ ==========
 async function loadSettings() {
     try {
-        // Загружаем видео, фоновое изображение и статистику параллельно
-        const [videoResponse, backgroundImageResponse, statsResponse] = await Promise.all([
+        // Загружаем видео, фоновое изображение, декоративный фон и статистику параллельно
+        const [videoResponse, backgroundImageResponse, ornamentResponse, statsResponse] = await Promise.all([
             apiFetch('/api/admin/settings/main_video'),
             apiFetch('/api/admin/settings/background_image'),
+            apiFetch('/api/admin/settings/ornament_background'),
             apiFetch('/api/admin/settings/stats/all')
         ]);
         
         const setting = await videoResponse.json();
         const backgroundImageSetting = await backgroundImageResponse.json();
+        const ornamentSetting = await ornamentResponse.json();
         const stats = await statsResponse.json();
         
         console.log('Загруженные настройки видео:', setting);
@@ -2204,9 +2206,40 @@ async function loadSettings() {
         const backgroundImageValue = backgroundImageSetting && backgroundImageSetting.value ? backgroundImageSetting.value : null;
         const hasCustomBackground = backgroundImageValue !== null;
         
+        const ornamentValue = ornamentSetting && ornamentSetting.value ? ornamentSetting.value : '/static/images/ornament.png';
+        const hasCustomOrnament = ornamentValue && ornamentValue !== '/static/images/ornament.png';
+        
         const content = document.getElementById('settingsContent');
         content.innerHTML = `
             <div style="display: flex; flex-direction: column; gap: 20px;">
+                <!-- Декоративный фон (ornament) -->
+                <div class="card">
+                    <h3>Декоративный фон страницы</h3>
+                    <p style="color: #666; margin-bottom: 15px; font-size: 14px;">Этот фон отображается на всех страницах как декоративный узор. Если не загружено, используется фон по умолчанию (ornament.png).</p>
+                    <form id="ornamentForm" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label>Загрузить новый декоративный фон</label>
+                            <input type="file" id="ornamentImageFile" accept="image/*">
+                            <small style="color: #666; display: block; margin-top: 5px;">Формат: JPG, PNG, GIF, WEBP (макс. 50MB)</small>
+                            <div id="ornamentImagePreview" style="margin-top: 10px;"></div>
+                        </div>
+                        ${hasCustomOrnament ? `
+                            <div class="form-group" style="margin-top: 15px;">
+                                <label>Текущий декоративный фон:</label>
+                                <p style="color: #666; margin-bottom: 5px; font-size: 12px;">Путь: ${ornamentValue}</p>
+                                <img src="${ornamentValue}" alt="Текущий декоративный фон" style="max-width: 100%; max-height: 300px; border-radius: 8px; margin-top: 10px; object-fit: contain; background: #f0f0f0; padding: 10px;">
+                                <button type="button" id="deleteOrnamentBtn" class="btn btn-danger" style="margin-top: 10px;">Удалить декоративный фон</button>
+                            </div>
+                        ` : `
+                            <div class="form-group" style="margin-top: 15px;">
+                                <p style="color: #666;">Используется декоративный фон по умолчанию: /static/images/ornament.png</p>
+                                <img src="/static/images/ornament.png" alt="Декоративный фон по умолчанию" style="max-width: 100%; max-height: 300px; border-radius: 8px; margin-top: 10px; object-fit: contain; background: #f0f0f0; padding: 10px;">
+                            </div>
+                        `}
+                        <button type="submit" class="btn btn-success">Сохранить новый декоративный фон</button>
+                    </form>
+                </div>
+                
                 <!-- Фоновое изображение главной страницы -->
                 <div class="card">
                     <h3>Фоновое изображение главной страницы</h3>
@@ -2289,6 +2322,94 @@ async function loadSettings() {
                 </div>
             </div>
         `;
+        
+        // Превью декоративного фона при выборе файла
+        const ornamentImageInput = document.getElementById('ornamentImageFile');
+        if (ornamentImageInput) {
+            ornamentImageInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                const preview = document.getElementById('ornamentImagePreview');
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        preview.innerHTML = `
+                            <p style="color: #666; margin-bottom: 5px;">Предпросмотр:</p>
+                            <img src="${e.target.result}" alt="Предпросмотр" style="max-width: 100%; max-height: 300px; border-radius: 8px; object-fit: contain; background: #f0f0f0; padding: 10px;">
+                        `;
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    preview.innerHTML = '';
+                }
+            });
+        }
+        
+        // Обработка отправки формы декоративного фона
+        const ornamentForm = document.getElementById('ornamentForm');
+        if (ornamentForm) {
+            ornamentForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData();
+                const imageFile = document.getElementById('ornamentImageFile').files[0];
+                
+                if (!imageFile) {
+                    alert('Выберите изображение');
+                    return;
+                }
+                
+                formData.append('image', imageFile);
+                
+                console.log('Отправка декоративного фона:', imageFile.name, 'размер:', imageFile.size, 'тип:', imageFile.type);
+                
+                try {
+                    const response = await apiFetch('/api/admin/settings/ornament_background', {
+                        method: 'PUT',
+                        body: formData
+                    });
+                    
+                    if (response.ok) {
+                        const result = await response.json();
+                        console.log('Декоративный фон успешно загружен:', result);
+                        alert('Декоративный фон успешно обновлен! Старое изображение удалено. Обновите страницу сайта (Ctrl+F5) чтобы увидеть изменения.');
+                        loadSettings();
+                    } else {
+                        const error = await response.json();
+                        console.error('Ошибка при загрузке декоративного фона:', error);
+                        alert('Ошибка: ' + (error.error || 'Не удалось обновить декоративный фон'));
+                    }
+                } catch (error) {
+                    console.error('Ошибка при загрузке декоративного фона:', error);
+                    alert('Ошибка при загрузке декоративного фона: ' + (error.message || 'Неизвестная ошибка'));
+                }
+            });
+        }
+        
+        // Обработка удаления декоративного фона
+        const deleteOrnamentBtn = document.getElementById('deleteOrnamentBtn');
+        if (deleteOrnamentBtn) {
+            deleteOrnamentBtn.addEventListener('click', async () => {
+                if (!confirm('Вы уверены, что хотите удалить декоративный фон? После удаления будет использоваться фон по умолчанию (ornament.png).')) {
+                    return;
+                }
+                
+                try {
+                    const response = await apiFetch('/api/admin/settings/ornament_background', {
+                        method: 'DELETE'
+                    });
+                    
+                    if (response.ok) {
+                        alert('Декоративный фон успешно удален! Будет использоваться фон по умолчанию.');
+                        loadSettings();
+                    } else {
+                        const error = await response.json();
+                        alert('Ошибка: ' + (error.error || 'Не удалось удалить декоративный фон'));
+                    }
+                } catch (error) {
+                    alert('Ошибка при удалении декоративного фона');
+                    console.error(error);
+                }
+            });
+        }
         
         // Превью фонового изображения при выборе файла
         const backgroundImageInput = document.getElementById('mainBackgroundImageFile');

@@ -1105,7 +1105,64 @@ function initCarousel() {
   console.log('=== Инициализация карусели завершена ===');
 }
 
+// Загрузка декоративного фона (ornament)
+async function loadOrnamentBackground() {
+  try {
+    // Добавляем уникальный timestamp для обхода кеша API
+    const apiUrl = '/api/ornament-background?t=' + Date.now() + '&r=' + Math.random();
+    const response = await fetch(apiUrl, { cache: 'no-store' });
+    const data = await response.json();
+    
+    if (!data || !data.path) {
+      console.warn('Путь к декоративному фону не получен из API:', data);
+      // Используем дефолтное значение
+      updateOrnamentBackground('/static/images/ornament.png');
+      return;
+    }
+    
+    console.log('=== Загрузка декоративного фона ===');
+    console.log('Путь:', data.path);
+    
+    // Добавляем уникальный timestamp к URL для обхода кеша браузера
+    const timestamp = Date.now();
+    const ornamentUrl = data.path + (data.path.includes('?') ? '&' : '?') + 't=' + timestamp + '&r=' + Math.random();
+    
+    // Обновляем фон
+    updateOrnamentBackground(ornamentUrl);
+  } catch (error) {
+    console.error('Ошибка при загрузке декоративного фона:', error);
+    // Используем дефолтное значение при ошибке
+    updateOrnamentBackground('/static/images/ornament.png');
+  }
+}
+
+// Обновление декоративного фона в CSS
+function updateOrnamentBackground(imagePath) {
+  // Обновляем CSS переменную или напрямую стиль body::before
+  const style = document.createElement('style');
+  style.id = 'ornament-background-style';
+  
+  // Удаляем старый стиль, если он есть
+  const oldStyle = document.getElementById('ornament-background-style');
+  if (oldStyle) {
+    oldStyle.remove();
+  }
+  
+  // Создаем новый стиль
+  style.textContent = `
+    body::before {
+      background-image: url('${imagePath}') !important;
+    }
+  `;
+  
+  document.head.appendChild(style);
+  console.log('Декоративный фон обновлен:', imagePath);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+  // Загружаем декоративный фон (ornament)
+  loadOrnamentBackground();
+  
   // Загружаем фон главной страницы (изображение или видео)
   loadMainBackground();
   
@@ -1119,6 +1176,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Это нужно, если фон был обновлен через админ-панель, пока страница открыта
   setInterval(() => {
     loadMainBackground();
+    loadOrnamentBackground();
   }, 30000); // Проверяем каждые 30 секунд
 });
 

@@ -91,6 +91,29 @@ app.get('/api/main-video', async (req, res) => {
   }
 });
 
+// Получить декоративный фон (ornament)
+app.get('/api/ornament-background', async (req, res) => {
+  try {
+    // Отключаем кеширование для этого endpoint
+    res.set({
+      'Cache-Control': 'no-store, no-cache, must-revalidate, private',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+    
+    const { Settings } = require('./models');
+    const setting = await Settings.findOne({ where: { key: 'ornament_background' } });
+    
+    // Если настройка не найдена, возвращаем значение по умолчанию
+    const ornamentPath = setting && setting.value ? setting.value : '/static/images/ornament.png';
+    res.json({ path: ornamentPath });
+  } catch (error) {
+    console.error('Ошибка при получении декоративного фона:', error);
+    // Возвращаем фон по умолчанию, если БД недоступна
+    res.json({ path: '/static/images/ornament.png' });
+  }
+});
+
 // Получить фон главной страницы (изображение или видео)
 app.get('/api/main-background', async (req, res) => {
   try {
