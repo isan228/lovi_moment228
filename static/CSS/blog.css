@@ -412,3 +412,423 @@
 .blog-card:nth-child(8) { animation-delay: 0.8s; }
 .blog-card:nth-child(9) { animation-delay: 0.9s; }
 
+/* ============================================
+   СТИЛИ ДЛЯ СТРАНИЦЫ ОТДЕЛЬНОЙ СТАТЬИ БЛОГА
+   ============================================ */
+
+/* Основной контейнер статьи */
+.post-detail {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 40px 20px 80px;
+  font-family: 'Montserrat', sans-serif;
+  color: #222;
+  background: #fff;
+}
+
+/* Заголовок статьи */
+.post-detail__title {
+  font-size: 64px;
+  font-weight: 700;
+  margin: 30px 0 30px;
+  line-height: 1.2;
+  color: #1a1a1a;
+  position: relative;
+  padding-bottom: 24px;
+  background: linear-gradient(135deg, #1a1a1a 0%, #333 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.post-detail__title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 150px;
+  height: 5px;
+  background: linear-gradient(90deg, #FF6B35, #F7931E);
+  border-radius: 3px;
+}
+
+/* Информация о статье */
+.post-detail__info {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin: 30px 0;
+  padding: 24px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border-radius: 16px;
+  border-left: 4px solid #FF6B35;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.post-detail__date {
+  font-size: 15px;
+  color: #666;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.post-detail__author {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 20px;
+  background: #fff;
+  border-radius: 50px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.post-detail__avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #FF6B35;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.2);
+}
+
+.post-detail__author-meta {
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+}
+
+.post-detail__author-label {
+  font-size: 12px;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.post-detail__author-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin-top: 4px;
+}
+
+/* Бейдж категории */
+.post-detail__category-badge {
+  margin-left: auto;
+}
+
+.category-badge {
+  display: inline-block;
+  padding: 8px 20px;
+  border-radius: 25px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.category-badge--culture {
+  background: linear-gradient(135deg, #FF6B35, #F7931E);
+  color: #fff;
+}
+
+.category-badge--tradition {
+  background: linear-gradient(135deg, #6B7FD7, #8B9FFF);
+  color: #fff;
+}
+
+.category-badge--nature {
+  background: linear-gradient(135deg, #4ECDC4, #44A08D);
+  color: #fff;
+}
+
+.category-badge--history {
+  background: linear-gradient(135deg, #E67E22, #D35400);
+  color: #fff;
+}
+
+.category-badge--food {
+  background: linear-gradient(135deg, #F39C12, #E67E22);
+  color: #fff;
+}
+
+/* Главное изображение */
+.post-detail__image--hero {
+  margin: 40px 0;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  position: relative;
+  height: 500px;
+}
+
+.post-detail__image--hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+
+.post-detail__image--hero:hover img {
+  transform: scale(1.05);
+}
+
+/* Изображения в тексте */
+.post-detail__image--inline {
+  margin: 40px 0;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.post-detail__image--inline img {
+  width: 100%;
+  height: auto;
+  display: block;
+  transition: transform 0.5s ease;
+}
+
+.post-detail__image--inline:hover img {
+  transform: scale(1.03);
+}
+
+/* Вводный блок */
+.post-intro {
+  margin: 40px 0;
+  padding: 32px 40px;
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.1), rgba(247, 147, 30, 0.1));
+  border-left: 5px solid #FF6B35;
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+}
+
+.post-intro__text {
+  font-size: 20px;
+  line-height: 1.8;
+  color: #2a2a2a;
+  font-weight: 500;
+  margin: 0;
+  font-style: italic;
+}
+
+/* Галерея изображений в статье */
+.post-gallery {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin: 40px 0;
+}
+
+.post-gallery__item {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  aspect-ratio: 1;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.post-gallery__item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.post-gallery__item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.post-gallery__item:hover img {
+  transform: scale(1.1);
+}
+
+/* Контент статьи */
+.post-detail__content {
+  margin-top: 40px;
+  line-height: 1.9;
+  font-size: 18px;
+  color: #444;
+  padding: 50px 60px;
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.post-detail__content p {
+  margin-bottom: 28px;
+  color: #444;
+  text-align: justify;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, rgba(248, 249, 250, 0.5), rgba(255, 255, 255, 0.8));
+  border-left: 4px solid rgba(255, 107, 53, 0.5);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.post-detail__content p:hover {
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.05), rgba(247, 147, 30, 0.05));
+  border-left-color: #FF6B35;
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.post-detail__content p:first-of-type {
+  font-size: 22px;
+  line-height: 2;
+  color: #2a2a2a;
+  font-weight: 500;
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.1), rgba(247, 147, 30, 0.1));
+  padding: 32px 40px;
+  border-radius: 16px;
+  border: 2px solid rgba(255, 107, 53, 0.3);
+  border-left: 6px solid #FF6B35;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  margin-bottom: 40px;
+}
+
+/* Похожие статьи */
+.related-posts {
+  margin-top: 80px;
+  padding-top: 60px;
+  border-top: 2px solid #f0f0f0;
+}
+
+.related-posts__title {
+  font-size: 36px;
+  font-weight: 700;
+  margin-bottom: 40px;
+  color: #1a1a1a;
+  text-align: center;
+  position: relative;
+  padding-bottom: 20px;
+}
+
+.related-posts__title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 4px;
+  background: linear-gradient(90deg, #FF6B35, #F7931E);
+  border-radius: 2px;
+}
+
+.related-posts__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.related-post-card {
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+}
+
+.related-post-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+}
+
+.related-post-card__image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.related-post-card:hover .related-post-card__image {
+  transform: scale(1.1);
+}
+
+.related-post-card__title {
+  padding: 20px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #222;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.related-post-card:hover .related-post-card__title {
+  color: #FF6B35;
+}
+
+/* Адаптивность для страницы статьи */
+@media (max-width: 768px) {
+  .post-detail {
+    padding: 30px 16px 60px;
+  }
+  
+  .post-detail__title {
+    font-size: 42px;
+  }
+  
+  .post-detail__info {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .post-detail__category-badge {
+    margin-left: 0;
+  }
+  
+  .post-detail__image--hero {
+    height: 300px;
+  }
+  
+  .post-gallery {
+    grid-template-columns: 1fr;
+  }
+  
+  .post-detail__content {
+    padding: 30px 24px;
+    font-size: 16px;
+  }
+  
+  .related-posts__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .post-detail__title {
+    font-size: 32px;
+  }
+  
+  .post-detail__image--hero {
+    height: 250px;
+  }
+  
+  .post-detail__content {
+    padding: 24px 16px;
+    font-size: 15px;
+  }
+  
+  .post-intro {
+    padding: 24px 20px;
+  }
+  
+  .post-intro__text {
+    font-size: 18px;
+  }
+}
+
