@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Туры</title>
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
-  <script src="{% static 'js/ornament-background.js' %}" defer></script>
 </head>
 <body>
     <header class="tour-header">
@@ -318,6 +317,57 @@
                 }
                 });
             });
+        </script>
+        <script>
+            // Загрузка декоративного фона (ornament)
+            async function loadOrnamentBackground() {
+              try {
+                const apiUrl = '/api/ornament-background?t=' + Date.now() + '&r=' + Math.random();
+                const response = await fetch(apiUrl, { cache: 'no-store' });
+                const data = await response.json();
+                
+                if (!data || !data.path) {
+                  updateOrnamentBackground('/static/images/ornament.png');
+                  return;
+                }
+                
+                const timestamp = Date.now();
+                const ornamentUrl = data.path + (data.path.includes('?') ? '&' : '?') + 't=' + timestamp + '&r=' + Math.random();
+                updateOrnamentBackground(ornamentUrl);
+              } catch (error) {
+                console.error('Ошибка при загрузке декоративного фона:', error);
+                updateOrnamentBackground('/static/images/ornament.png');
+              }
+            }
+
+            function updateOrnamentBackground(imagePath) {
+              const style = document.createElement('style');
+              style.id = 'ornament-background-style';
+              
+              const oldStyle = document.getElementById('ornament-background-style');
+              if (oldStyle) oldStyle.remove();
+              
+              style.textContent = `
+                html body::before {
+                  background-image: url('${imagePath}') !important;
+                  background-repeat: repeat !important;
+                  background-size: var(--ornament-size) auto !important;
+                  background-position: 0 0 !important;
+                }
+              `;
+              
+              document.head.appendChild(style);
+            }
+
+            if (document.readyState === 'loading') {
+              document.addEventListener('DOMContentLoaded', () => {
+                loadOrnamentBackground();
+                setInterval(loadOrnamentBackground, 30000);
+              });
+            } else {
+              loadOrnamentBackground();
+              setInterval(loadOrnamentBackground, 30000);
+            }
         </script>
 
 </body>
