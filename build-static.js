@@ -110,22 +110,36 @@ function replaceStaticTags(content, outputPathStr) {
     return calculateStaticPath(outputPathStr, normalizedPath);
   });
 
+  // ВАЖНО: НЕ изменяем пути к API (/api/...) - они должны оставаться абсолютными
   // Заменяем /static/ пути на относительные (более точное регулярное выражение)
   // Обрабатываем пути в атрибутах src, href, style и т.д.
-  content = content.replace(/["']\/static\/([^"'\s<>]+)["']/g, (match, staticFile) => {
+  // НО пропускаем пути, которые начинаются с /api/
+  content = content.replace(/["'](\/static\/[^"'\s<>]+)["']/g, (match, staticFile) => {
+    // Пропускаем, если это не статический файл
+    if (!staticFile.startsWith('/static/')) {
+      return match;
+    }
     // Нормализуем регистр
-    const normalizedFile = staticFile.replace(/^CSS\//i, 'css/').replace(/^JS\//i, 'js/');
+    const normalizedFile = staticFile.replace(/^\/static\//, '').replace(/^CSS\//i, 'css/').replace(/^JS\//i, 'js/');
     const newPath = calculateStaticPath(outputPathStr, normalizedFile);
     // Сохраняем кавычки
     return match[0] === '"' ? `"${newPath}"` : `'${newPath}'`;
   });
   
   // Также обрабатываем пути в style атрибутах
-  content = content.replace(/url\(['"]?\/static\/([^"'\s<>)]+)['"]?\)/gi, (match, staticFile) => {
-    const normalizedFile = staticFile.replace(/^CSS\//i, 'css/').replace(/^JS\//i, 'js/');
+  // НО НЕ изменяем пути к API
+  content = content.replace(/url\(['"]?(\/static\/[^"'\s<>)]+)['"]?\)/gi, (match, staticFile) => {
+    if (!staticFile.startsWith('/static/')) {
+      return match;
+    }
+    const normalizedFile = staticFile.replace(/^\/static\//, '').replace(/^CSS\//i, 'css/').replace(/^JS\//i, 'js/');
     const newPath = calculateStaticPath(outputPathStr, normalizedFile);
     return `url('${newPath}')`;
   });
+  
+  // ВАЖНО: Защищаем пути к API от изменения
+  // Убеждаемся, что все пути /api/ остаются абсолютными
+  // (они уже должны быть такими, но на всякий случай)
 
   return content;
 }
