@@ -176,8 +176,11 @@ app.get('/api/countries', async (req, res) => {
       order: [['order', 'ASC'], ['name', 'ASC']]
     });
     
+    console.log(`[API /api/countries] Найдено активных стран: ${countries.length}`);
+    
     // Если стран нет, возвращаем дефолтные
     if (countries.length === 0) {
+      console.log('[API /api/countries] Нет активных стран, возвращаем дефолтные');
       return res.json([
         { id: 1, name: 'Кыргызстан', banner: '/static/images/kg.png', link: '/tour/', order: 0 },
         { id: 2, name: 'Узбекистан', banner: '/static/images/uz.png', link: '/uz/', order: 1 },
@@ -185,9 +188,10 @@ app.get('/api/countries', async (req, res) => {
       ]);
     }
     
+    console.log('[API /api/countries] Возвращаем страны:', countries.map(c => c.name).join(', '));
     res.json(countries);
   } catch (error) {
-    console.error('Ошибка при получении стран:', error);
+    console.error('[API /api/countries] Ошибка при получении стран:', error);
     // Возвращаем дефолтные страны, если БД недоступна
     res.json([
       { id: 1, name: 'Кыргызстан', banner: '/static/images/kg.png', link: '/tour/', order: 0 },
