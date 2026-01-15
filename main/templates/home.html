@@ -104,10 +104,8 @@
                     <li><a href="{% url 'about_us' %}">О нас</a></li>
                     <li class="nav-tour__item nav-tour__dropdown">
                         <a href="{% url 'tour' %}" class="nav-tour__link">Туры</a>
-                        <ul class="nav-tour__submenu">
-                            <li><a href="{% url 'tour' %}">Кыргызстан</a></li>
-                            <li><a href="{% url 'kz' %}">Казахстан</a></li>
-                            <li><a href="{% url 'uz' %}">Узбекистан</a></li>
+                        <ul class="nav-tour__submenu" id="countriesNavMenu">
+                            <!-- Страны будут загружены динамически -->
                         </ul>
                     </li>
                     <li><a href="{% url 'gallery' %}">Галерея</a></li>
@@ -256,21 +254,6 @@
                 <h2>Выбери свою поездку!</h2>
                 <div class="cards-stan" id="countriesCards">
                     <!-- Карточки стран будут загружены динамически -->
-                    <div class="cardstan">
-                        <img src="/static/images/kg.png" alt="Фото страны" />
-                        <h3>Кыргызстан</h3>
-                        <button><a href="{% url 'tour' %}">Подробнее</a></button>
-                    </div>
-                    <div class="cardstan">
-                        <img src="/static/images/uz.png" alt="Фото страны" />
-                        <h3>Узбекистан</h3>
-                        <button><a href="{% url 'uz' %}">Подробнее</a></button>
-                    </div>
-                    <div class="cardstan">
-                        <img src="/static/images/kz.png" alt="Фото страны" />
-                        <h3>Казахстан</h3>
-                        <button><a href="{% url 'kz' %}">Подробнее</a></button>
-                    </div>
                 </div>
             </div>
         </section>
@@ -789,16 +772,19 @@ async function loadHomeGallery() {
 // Загрузка стран для карточек на главной странице
 async function loadCountries() {
   console.log('=== Загрузка стран ===');
+  const cardsContainer = document.getElementById('countriesCards');
+  if (!cardsContainer) {
+    console.warn('Контейнер карточек стран не найден');
+    return;
+  }
+  
   try {
     const response = await fetch('/api/countries');
-    const countries = await response.json();
-    console.log('Получено стран из API:', countries.length);
-    
-    const cardsContainer = document.getElementById('countriesCards');
-    if (!cardsContainer) {
-      console.warn('Контейнер карточек стран не найден');
-      return;
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+    const countries = await response.json();
+    console.log('Получено стран из API:', countries.length, countries);
     
     // Всегда очищаем существующие карточки и заменяем на динамические
     cardsContainer.innerHTML = '';
@@ -809,6 +795,8 @@ async function loadCountries() {
       { name: 'Узбекистан', banner: '/static/images/uz.png', link: '/uz/' },
       { name: 'Казахстан', banner: '/static/images/kz.png', link: '/kz/' }
     ];
+    
+    console.log('Страны для отображения:', countriesToShow.length);
     
     // Создаем карточки для каждой страны
     countriesToShow.forEach((country) => {
@@ -844,33 +832,32 @@ async function loadCountries() {
   } catch (error) {
     console.error('Ошибка при загрузке стран:', error);
     // При ошибке тоже показываем дефолтные карточки
-    const cardsContainer = document.getElementById('countriesCards');
-    if (cardsContainer) {
-      cardsContainer.innerHTML = '';
-      const defaultCountries = [
-        { name: 'Кыргызстан', banner: '/static/images/kg.png', link: '/tour/' },
-        { name: 'Узбекистан', banner: '/static/images/uz.png', link: '/uz/' },
-        { name: 'Казахстан', banner: '/static/images/kz.png', link: '/kz/' }
-      ];
-      defaultCountries.forEach((country) => {
-        const card = document.createElement('div');
-        card.className = 'cardstan';
-        const img = document.createElement('img');
-        img.src = country.banner;
-        img.alt = country.name;
-        card.appendChild(img);
-        const h3 = document.createElement('h3');
-        h3.textContent = country.name;
-        card.appendChild(h3);
-        const button = document.createElement('button');
-        const link = document.createElement('a');
-        link.href = country.link;
-        link.textContent = 'Подробнее';
-        button.appendChild(link);
-        card.appendChild(button);
-        cardsContainer.appendChild(card);
-      });
-    }
+    cardsContainer.innerHTML = '';
+    const defaultCountries = [
+      { name: 'Кыргызстан', banner: '/static/images/kg.png', link: '/tour/' },
+      { name: 'Узбекистан', banner: '/static/images/uz.png', link: '/uz/' },
+      { name: 'Казахстан', banner: '/static/images/kz.png', link: '/kz/' }
+    ];
+    defaultCountries.forEach((country) => {
+      const card = document.createElement('div');
+      card.className = 'cardstan';
+      const img = document.createElement('img');
+      img.src = country.banner;
+      img.alt = country.name;
+      card.appendChild(img);
+      const h3 = document.createElement('h3');
+      h3.textContent = country.name;
+      card.appendChild(h3);
+      const button = document.createElement('button');
+      const link = document.createElement('a');
+      link.href = country.link;
+      link.textContent = 'Подробнее';
+      button.appendChild(link);
+      card.appendChild(button);
+      cardsContainer.appendChild(card);
+    });
+    // Также обновляем навбар дефолтными странами
+    updateCountriesNav(defaultCountries);
   }
 }
 
@@ -1376,11 +1363,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // Загружаем галерею
   loadHomeGallery();
   
+  // Загружаем страны для карточек (сначала, чтобы они были видны сразу)
+  loadCountries();
+  
   // Загружаем виды туров (эта функция сама вызовет initCarousel после загрузки)
   loadTourTypes();
-  
-  // Загружаем страны для карточек
-  loadCountries();
   
   // Периодически проверяем обновление фона (каждые 30 секунд)
   // Это нужно, если фон был обновлен через админ-панель, пока страница открыта
