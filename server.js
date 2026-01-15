@@ -167,6 +167,26 @@ app.get('/api/main-background', async (req, res) => {
   }
 });
 
+// Получить активные страны для главной страницы (публичные)
+app.get('/api/countries', async (req, res) => {
+  try {
+    const { Country } = require('./models');
+    const countries = await Country.findAll({
+      where: { isActive: true },
+      order: [['order', 'ASC'], ['name', 'ASC']]
+    });
+    res.json(countries);
+  } catch (error) {
+    console.error('Ошибка при получении стран:', error);
+    // Возвращаем дефолтные страны, если БД недоступна
+    res.json([
+      { id: 1, name: 'Кыргызстан', banner: '/static/images/kg.png', link: '/tour/' },
+      { id: 2, name: 'Узбекистан', banner: '/static/images/uz.png', link: '/uz/' },
+      { id: 3, name: 'Казахстан', banner: '/static/images/kz.png', link: '/kz/' }
+    ]);
+  }
+});
+
 // Получить активные виды туров (публичные)
 app.get('/api/tour-types', async (req, res) => {
   try {

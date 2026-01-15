@@ -16,6 +16,16 @@ const Country = sequelize.define('Country', {
     type: DataTypes.STRING,
     allowNull: true
   },
+  link: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'URL страницы страны (например, /tour/, /kz/, /uz/)'
+  },
+  order: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+    comment: 'Порядок отображения на главной странице'
+  },
   isActive: {
     type: DataTypes.BOOLEAN,
     defaultValue: true

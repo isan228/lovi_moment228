@@ -112,6 +112,8 @@ async function loadCountries() {
                         <th>ID</th>
                         <th>Название</th>
                         <th>Баннер</th>
+                        <th>Ссылка</th>
+                        <th>Порядок</th>
                         <th>Активна</th>
                         <th>Действия</th>
                     </tr>
@@ -122,6 +124,8 @@ async function loadCountries() {
                             <td>${country.id}</td>
                             <td>${country.name}</td>
                             <td>${country.banner ? `<img src="${country.banner}" alt="${country.name}" style="width: 80px; height: 50px; object-fit: cover; border-radius: 8px;">` : '<span style="color: #999;">Нет баннера</span>'}</td>
+                            <td>${country.link || '<span style="color: #999;">не указана</span>'}</td>
+                            <td>${country.order || 0}</td>
                             <td>${country.isActive ? 'Да' : 'Нет'}</td>
                             <td>
                                 <button class="btn btn-primary" onclick="editCountry(${country.id})">Редактировать</button>
@@ -152,6 +156,16 @@ function showCountryForm(countryId = null) {
                     <input type="file" id="countryBanner" accept="image/*">
                     <small style="color: #666; display: block; margin-top: 5px;">Формат: JPG, PNG, GIF, WEBP (макс. 5MB)</small>
                     <div id="countryBannerPreview" style="margin-top: 10px;"></div>
+                </div>
+                <div class="form-group">
+                    <label>Ссылка на страницу</label>
+                    <input type="text" id="countryLink" placeholder="/tour/, /kz/, /uz/">
+                    <small style="color: #666; display: block; margin-top: 5px;">URL страницы страны (например: /tour/, /kz/, /uz/)</small>
+                </div>
+                <div class="form-group">
+                    <label>Порядок отображения</label>
+                    <input type="number" id="countryOrder" value="0" min="0">
+                    <small style="color: #666; display: block; margin-top: 5px;">Чем меньше число, тем выше карточка на главной странице</small>
                 </div>
                 <div class="form-group">
                     <label>
@@ -185,8 +199,10 @@ function showCountryForm(countryId = null) {
         fetch(`/api/admin/countries/${countryId}`)
             .then(res => res.json())
             .then(data => {
-                document.getElementById('countryName').value = data.name;
-                document.getElementById('countryIsActive').checked = data.isActive;
+                document.getElementById('countryName').value = data.name || '';
+                document.getElementById('countryLink').value = data.link || '';
+                document.getElementById('countryOrder').value = data.order || 0;
+                document.getElementById('countryIsActive').checked = data.isActive !== false;
                 
                 if (data.banner) {
                     const preview = document.getElementById('countryBannerPreview');
@@ -204,6 +220,8 @@ function showCountryForm(countryId = null) {
         e.preventDefault();
         const formData = new FormData();
         formData.append('name', document.getElementById('countryName').value);
+        formData.append('link', document.getElementById('countryLink').value);
+        formData.append('order', document.getElementById('countryOrder').value);
         formData.append('isActive', document.getElementById('countryIsActive').checked);
         
         const bannerFile = document.getElementById('countryBanner').files[0];

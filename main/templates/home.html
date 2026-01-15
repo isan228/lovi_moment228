@@ -254,12 +254,12 @@
             <h2>Или</h2>
             <div class="stan">
                 <h2>Выбери свою поездку!</h2>
-                <div class="cards-stan">
+                <div class="cards-stan" id="countriesCards">
+                    <!-- Карточки стран будут загружены динамически -->
                     <div class="cardstan">
                         <img src="/static/images/kg.png" alt="Фото страны" />
                         <h3>Кыргызстан</h3>
                         <button><a href="{% url 'tour' %}">Подробнее</a></button>
-                        
                     </div>
                     <div class="cardstan">
                         <img src="/static/images/uz.png" alt="Фото страны" />
@@ -1259,6 +1259,9 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Загружаем виды туров (эта функция сама вызовет initCarousel после загрузки)
   loadTourTypes();
+  
+  // Загружаем страны для карточек
+  loadCountries();
   
   // Периодически проверяем обновление фона (каждые 30 секунд)
   // Это нужно, если фон был обновлен через админ-панель, пока страница открыта

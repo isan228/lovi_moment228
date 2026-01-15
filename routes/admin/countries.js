@@ -66,7 +66,7 @@ router.get('/:id', requireAuth, async (req, res) => {
 // Создать страну
 router.post('/', requireAuth, upload.single('banner'), async (req, res) => {
   try {
-    const { name, isActive } = req.body;
+    const { name, link, order, isActive } = req.body;
     
     if (!name) {
       return res.status(400).json({ error: 'Название обязательно' });
@@ -80,6 +80,8 @@ router.post('/', requireAuth, upload.single('banner'), async (req, res) => {
     const country = await Country.create({
       name,
       banner: bannerPath,
+      link: link || null,
+      order: order || 0,
       isActive: isActive !== undefined ? isActive : true
     });
     res.status(201).json(country);
@@ -92,7 +94,7 @@ router.post('/', requireAuth, upload.single('banner'), async (req, res) => {
 // Обновить страну
 router.put('/:id', requireAuth, upload.single('banner'), async (req, res) => {
   try {
-    const { name, isActive } = req.body;
+    const { name, link, order, isActive } = req.body;
     const country = await Country.findByPk(req.params.id);
     
     if (!country) {
@@ -100,6 +102,8 @@ router.put('/:id', requireAuth, upload.single('banner'), async (req, res) => {
     }
 
     country.name = name || country.name;
+    country.link = link !== undefined ? link : country.link;
+    country.order = order !== undefined ? order : country.order;
     country.isActive = isActive !== undefined ? isActive : country.isActive;
     
     // Если загружен новый баннер, обновляем путь и удаляем старый файл
