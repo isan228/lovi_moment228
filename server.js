@@ -387,44 +387,72 @@ app.post('/submit-application', upload.none(), async (req, res) => {
   }
 });
 
-// Раздача статических файлов из public
-// Исключаем /admin и /api из статики - они обрабатываются роутерами выше
-// НО разрешаем статические файлы из /admin/ (admin.js и т.д.)
-const staticMiddleware = express.static(path.join(__dirname, 'public'));
-app.use((req, res, next) => {
-  // Разрешаем статические файлы из /admin/ (admin.js, и т.д.)
-  if (req.path.startsWith('/admin/') && !req.path.startsWith('/admin/api') && 
-      (req.path.endsWith('.js') || req.path.endsWith('.css') || req.path.endsWith('.png') || 
-       req.path.endsWith('.jpg') || req.path.endsWith('.gif') || req.path.endsWith('.ico'))) {
-    return staticMiddleware(req, res, next);
+// Раздача статических файлов из public/static (только ресурсы: CSS, JS, изображения)
+// НЕ отдаем HTML файлы статически - они обрабатываются динамически
+app.use('/static', express.static(path.join(__dirname, 'public', 'static')));
+
+// Раздача статических файлов из /admin/ (admin.js и т.д.)
+app.use('/admin', express.static(path.join(__dirname, 'public', 'admin'), {
+  // Разрешаем только определенные файлы
+  setHeaders: (res, filePath) => {
+    const ext = path.extname(filePath).toLowerCase();
+    const allowedExts = ['.js', '.css', '.html', '.png', '.jpg', '.gif', '.ico', '.svg'];
+    if (!allowedExts.includes(ext)) {
+      res.status(404);
+    }
   }
-  
-  if (req.path.startsWith('/admin') || req.path.startsWith('/api')) {
-    return next(); // Пропускаем статику для админки и API
-  }
-  // Для остальных путей используем статику
-  staticMiddleware(req, res, next);
+}));
+
+// Маршруты для динамических страниц - отдаем HTML из public, но они содержат динамический JS
+// Эти маршруты должны быть ДО общего catch-all маршрута
+
+// Главная страница
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Маршрут для динамических страниц туров /tour-about/:slug
-// Отдаем один и тот же HTML файл, JavaScript загрузит данные по slug
+// Страница списка туров (динамическая)
+app.get('/tour/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'tour', 'index.html'));
+});
+
+// Страница тура по slug (динамическая)
 app.get('/tour-about/:slug', (req, res) => {
-  const tourAboutPath = path.join(__dirname, 'public', 'tour-about', 'index.html');
-  const fs = require('fs');
-  
-  if (fs.existsSync(tourAboutPath)) {
-    return res.sendFile(tourAboutPath);
-  } else {
-    // Если файл не найден, отправляем главную страницу
-    return res.sendFile(path.join(__dirname, 'public', 'index.html'));
-  }
+  res.sendFile(path.join(__dirname, 'public', 'tour-about', 'index.html'));
 });
 
-// Обработка всех остальных маршрутов (для статических HTML страниц)
-// Express автоматически будет искать index.html в соответствующих папках
+// Остальные страницы
+const staticPages = {
+  '/about-us/': 'about/index.html',
+  '/gallery/': 'gallery/index.html',
+  '/blog/': 'blog/index.html',
+  '/blog-about/': 'blog-about/index.html',
+  '/partners/': 'partners/index.html',
+  '/corp-tour/': 'corp-tour/index.html',
+  '/indi-tour/': 'indi-tour/index.html',
+  '/sign-tour/': 'sign-tour/index.html',
+  '/kz/': 'kz/index.html',
+  '/uz/': 'uz/index.html',
+  '/gallery-kz/': 'gallery-kz/index.html',
+  '/gallery-uz/': 'gallery-uz/index.html'
+};
+
+// Регистрируем маршруты для статических страниц
+for (const [route, file] of Object.entries(staticPages)) {
+  app.get(route, (req, res) => {
+    const filePath = path.join(__dirname, 'public', file);
+    if (fs.existsSync(filePath)) {
+      res.sendFile(filePath);
+    } else {
+      res.status(404).send('Page not found');
+    }
+  });
+}
+
+// Обработка всех остальных маршрутов (fallback)
 app.get('*', (req, res) => {
-  // Если запрос идет к админ-панели, не обрабатываем здесь
-  if (req.path.startsWith('/admin') || req.path.startsWith('/api')) {
+  // Если запрос идет к админ-панели или API, не обрабатываем здесь
+  if (req.path.startsWith('/admin') || req.path.startsWith('/api') || req.path.startsWith('/static')) {
     return res.status(404).send('Not found');
   }
 

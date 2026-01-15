@@ -168,6 +168,9 @@ function cleanDjangoTags(content) {
   // Удаляем {% load static %}
   content = content.replace(/\{\%\s*load\s+static\s*\%\}/g, '');
   
+  // ВАЖНО: НЕ удаляем JavaScript код с fetch, API вызовами и динамическим контентом!
+  // Удаляем только Django-специфичные теги
+  
   // Удаляем {% csrf_token %}
   content = content.replace(/\{\%\s*csrf_token\s*\%\}/g, '');
 
