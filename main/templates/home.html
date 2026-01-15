@@ -800,16 +800,18 @@ async function loadCountries() {
       return;
     }
     
-    if (!countries || countries.length === 0) {
-      console.log('Нет стран из API, используем статические карточки');
-      return;
-    }
-    
-    // Очищаем существующие карточки
+    // Всегда очищаем существующие карточки и заменяем на динамические
     cardsContainer.innerHTML = '';
     
+    // Если стран нет, используем дефолтные
+    const countriesToShow = countries && countries.length > 0 ? countries : [
+      { name: 'Кыргызстан', banner: '/static/images/kg.png', link: '/tour/' },
+      { name: 'Узбекистан', banner: '/static/images/uz.png', link: '/uz/' },
+      { name: 'Казахстан', banner: '/static/images/kz.png', link: '/kz/' }
+    ];
+    
     // Создаем карточки для каждой страны
-    countries.forEach((country) => {
+    countriesToShow.forEach((country) => {
       const card = document.createElement('div');
       card.className = 'cardstan';
       
@@ -835,11 +837,65 @@ async function loadCountries() {
       cardsContainer.appendChild(card);
     });
     
-    console.log('Карточки стран успешно загружены');
+    console.log('Карточки стран успешно загружены:', countriesToShow.length);
+    
+    // Также обновляем навбар
+    updateCountriesNav(countriesToShow);
   } catch (error) {
     console.error('Ошибка при загрузке стран:', error);
-    // Оставляем статические карточки при ошибке
+    // При ошибке тоже показываем дефолтные карточки
+    const cardsContainer = document.getElementById('countriesCards');
+    if (cardsContainer) {
+      cardsContainer.innerHTML = '';
+      const defaultCountries = [
+        { name: 'Кыргызстан', banner: '/static/images/kg.png', link: '/tour/' },
+        { name: 'Узбекистан', banner: '/static/images/uz.png', link: '/uz/' },
+        { name: 'Казахстан', banner: '/static/images/kz.png', link: '/kz/' }
+      ];
+      defaultCountries.forEach((country) => {
+        const card = document.createElement('div');
+        card.className = 'cardstan';
+        const img = document.createElement('img');
+        img.src = country.banner;
+        img.alt = country.name;
+        card.appendChild(img);
+        const h3 = document.createElement('h3');
+        h3.textContent = country.name;
+        card.appendChild(h3);
+        const button = document.createElement('button');
+        const link = document.createElement('a');
+        link.href = country.link;
+        link.textContent = 'Подробнее';
+        button.appendChild(link);
+        card.appendChild(button);
+        cardsContainer.appendChild(card);
+      });
+    }
   }
+}
+
+// Обновление навбара со странами
+function updateCountriesNav(countries) {
+  const navMenu = document.getElementById('countriesNavMenu');
+  if (!navMenu) {
+    console.warn('Меню стран в навбаре не найдено');
+    return;
+  }
+  
+  // Очищаем меню
+  navMenu.innerHTML = '';
+  
+  // Добавляем страны в меню
+  countries.forEach((country) => {
+    const li = document.createElement('li');
+    const a = document.createElement('a');
+    a.href = country.link || '#';
+    a.textContent = country.name;
+    li.appendChild(a);
+    navMenu.appendChild(li);
+  });
+  
+  console.log('Навбар со странами обновлен');
 }
 
 // Загрузка видов туров для карусели

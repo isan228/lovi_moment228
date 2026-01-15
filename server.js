@@ -175,14 +175,24 @@ app.get('/api/countries', async (req, res) => {
       where: { isActive: true },
       order: [['order', 'ASC'], ['name', 'ASC']]
     });
+    
+    // Если стран нет, возвращаем дефолтные
+    if (countries.length === 0) {
+      return res.json([
+        { id: 1, name: 'Кыргызстан', banner: '/static/images/kg.png', link: '/tour/', order: 0 },
+        { id: 2, name: 'Узбекистан', banner: '/static/images/uz.png', link: '/uz/', order: 1 },
+        { id: 3, name: 'Казахстан', banner: '/static/images/kz.png', link: '/kz/', order: 2 }
+      ]);
+    }
+    
     res.json(countries);
   } catch (error) {
     console.error('Ошибка при получении стран:', error);
     // Возвращаем дефолтные страны, если БД недоступна
     res.json([
-      { id: 1, name: 'Кыргызстан', banner: '/static/images/kg.png', link: '/tour/' },
-      { id: 2, name: 'Узбекистан', banner: '/static/images/uz.png', link: '/uz/' },
-      { id: 3, name: 'Казахстан', banner: '/static/images/kz.png', link: '/kz/' }
+      { id: 1, name: 'Кыргызстан', banner: '/static/images/kg.png', link: '/tour/', order: 0 },
+      { id: 2, name: 'Узбекистан', banner: '/static/images/uz.png', link: '/uz/', order: 1 },
+      { id: 3, name: 'Казахстан', banner: '/static/images/kz.png', link: '/kz/', order: 2 }
     ]);
   }
 });
