@@ -37,10 +37,8 @@
                 <li><a href="{% url 'about_us' %}">О нас</a></li>
                 <li class="nav-tour__item nav-tour__dropdown">
                     <a href="{% url 'tour' %}" class="nav-tour__link">Туры</a>
-                    <ul class="nav-tour__submenu">
-                        <li><a href="{% url 'tour' %}">Кыргызстан</a></li>
-                        <li><a href="{% url 'kz' %}">Казахстан</a></li>
-                        <li><a href="{% url 'uz' %}">Узбекистан</a></li>
+                    <ul class="nav-tour__submenu" id="countriesNavMenu">
+                        <!-- Страны будут загружены динамически -->
                     </ul>
                 </li>
                 <li><a href="{% url 'gallery' %}">Галерея</a></li>
@@ -89,16 +87,8 @@
         <div class="locations-container">
             <section class="big-gallery">
                 <nav class="gallery-nav">
-                    <ul class="gallery-nav__list">
-                        <li class="gallery-nav__item">
-                        <a href="{% url 'tour' %}" class="gallery-nav__link">Кыргызстан</a>
-                        </li>
-                        <li class="gallery-nav__item">
-                        <a href="{% url 'uz' %}" class="gallery-nav__link">Узбекистан</a>
-                        </li>
-                        <li class="gallery-nav__item">
-                        <a href="{% url 'kz' %}" class="gallery-nav__link gallery-nav__link--active">Казахстан</a>
-                        </li>
+                    <ul class="gallery-nav__list" id="countriesNavList">
+                        <!-- Страны будут загружены динамически -->
                     </ul>
                 </nav>
             </section>
@@ -162,7 +152,93 @@
             </div>
         </footer>
         <script>
-            document.addEventListener('DOMContentLoaded', function() {
+            // Загрузка стран для навигации
+            async function loadCountriesNav() {
+                console.log('=== Загрузка стран для навигации ===');
+                try {
+                    const response = await fetch('/api/countries');
+                    const countries = await response.json();
+                    console.log('Получено стран из API:', countries.length);
+
+                    // Если стран нет, используем дефолтные
+                    const countriesToShow = countries && countries.length > 0 ? countries : [
+                        { name: 'Кыргызстан', link: '/tour/' },
+                        { name: 'Узбекистан', link: '/uz/' },
+                        { name: 'Казахстан', link: '/kz/' }
+                    ];
+
+                    // Обновляем навбар (подменю "Туры")
+                    const navMenu = document.getElementById('countriesNavMenu');
+                    if (navMenu) {
+                        navMenu.innerHTML = '';
+                        countriesToShow.forEach((country) => {
+                            const li = document.createElement('li');
+                            const a = document.createElement('a');
+                            a.href = country.link || '#';
+                            a.textContent = country.name;
+                            li.appendChild(a);
+                            navMenu.appendChild(li);
+                        });
+                    }
+
+                    // Обновляем навигацию галереи (основная навигация по странам)
+                    const navList = document.getElementById('countriesNavList');
+                    if (navList) {
+                        navList.innerHTML = '';
+                        
+                        // Определяем текущую страну из URL
+                        const currentPath = window.location.pathname;
+                        
+                        countriesToShow.forEach((country) => {
+                            const li = document.createElement('li');
+                            li.className = 'gallery-nav__item';
+                            const a = document.createElement('a');
+                            a.href = country.link || '#';
+                            a.className = 'gallery-nav__link';
+                            
+                            // Проверяем, является ли эта страна текущей
+                            if (currentPath === country.link || (country.link === '/kz/' && currentPath.includes('/kz'))) {
+                                a.classList.add('gallery-nav__link--active');
+                            }
+                            
+                            a.textContent = country.name;
+                            li.appendChild(a);
+                            navList.appendChild(li);
+                        });
+                        
+                        console.log('Навигация стран обновлена');
+                    }
+                } catch (error) {
+                    console.error('Ошибка при загрузке стран:', error);
+                    // При ошибке используем дефолтные страны
+                    const defaultCountries = [
+                        { name: 'Кыргызстан', link: '/tour/' },
+                        { name: 'Узбекистан', link: '/uz/' },
+                        { name: 'Казахстан', link: '/kz/' }
+                    ];
+                    
+                    const navList = document.getElementById('countriesNavList');
+                    if (navList) {
+                        navList.innerHTML = '';
+                        defaultCountries.forEach((country) => {
+                            const li = document.createElement('li');
+                            li.className = 'gallery-nav__item';
+                            const a = document.createElement('a');
+                            a.href = country.link;
+                            a.className = 'gallery-nav__link';
+                            if (country.link === '/kz/') a.classList.add('gallery-nav__link--active');
+                            a.textContent = country.name;
+                            li.appendChild(a);
+                            navList.appendChild(li);
+                        });
+                    }
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', async function() {
+                // Загружаем страны для навигации
+                await loadCountriesNav();
+
                 const toggle = document.querySelector('.nav-tour__toggle');
                 const menu   = document.getElementById('navMenu');
 
