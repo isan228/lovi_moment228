@@ -889,7 +889,14 @@ function updateCountriesNav(countries) {
   countries.forEach((country) => {
     const li = document.createElement('li');
     const a = document.createElement('a');
-    a.href = country.link || '#';
+    // Используем относительный путь, если ссылка начинается с /
+    let href = country.link || '#';
+    if (href.startsWith('/') && !href.startsWith('//')) {
+      // Оставляем как есть для абсолютных путей
+      a.href = href;
+    } else {
+      a.href = href;
+    }
     a.textContent = country.name;
     li.appendChild(a);
     navMenu.appendChild(li);
