@@ -885,6 +885,18 @@ function updateStructuredData(tour) {
   document.head.appendChild(script);
 }
 
+// Хелпер для нормализации пути к изображению
+function normalizeImagePath(path) {
+  if (!path) return path;
+  // Не трогаем абсолютные URL
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  // Если путь уже начинается с /static, оставляем как есть
+  if (path.startsWith('/static/')) return path;
+  // Если путь начинается с static/ без слеша — добавляем ведущий слеш
+  if (path.startsWith('static/')) return '/' + path;
+  return path;
+}
+
 // Обновление header
 function updateTourHeader(tour) {
   console.log('Обновление header, tour:', tour);
@@ -896,8 +908,9 @@ function updateTourHeader(tour) {
   
   // Устанавливаем главное фото только если есть headerImage
   if (tour.headerImage) {
-    console.log('Устанавливаем headerImage:', tour.headerImage);
-    header.style.backgroundImage = `url('${tour.headerImage}')`;
+    const headerSrc = normalizeImagePath(tour.headerImage);
+    console.log('Устанавливаем headerImage:', headerSrc);
+    header.style.backgroundImage = `url('${headerSrc}')`;
   } else {
     console.log('headerImage не найден, используем дефолтное изображение');
     header.style.backgroundImage = `url('/static/images/location.png')`;
@@ -1058,7 +1071,7 @@ function updateTourGallery(tour) {
   // Используем tour.images (массив TourImage), исключая headerImage
   let images = [];
   if (tour.images && Array.isArray(tour.images)) {
-    images = tour.images.map(img => img.imagePath || img);
+    images = tour.images.map(img => normalizeImagePath(img.imagePath || img));
   }
   
   console.log('Обработанные изображения для галереи:', images);
