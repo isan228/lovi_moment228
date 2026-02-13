@@ -91,7 +91,7 @@ app.get('/api/main-video', async (req, res) => {
       'Pragma': 'no-cache',
       'Expires': '0'
     });
-    
+
     const { Settings } = require('./models');
     const setting = await Settings.findOne({ where: { key: 'main_video' } });
     const videoPath = setting && setting.value ? setting.value : '/static/images/mainback3.mp4';
@@ -112,10 +112,10 @@ app.get('/api/ornament-background', async (req, res) => {
       'Pragma': 'no-cache',
       'Expires': '0'
     });
-    
+
     const { Settings } = require('./models');
     const setting = await Settings.findOne({ where: { key: 'ornament_background' } });
-    
+
     // Если настройка не найдена, возвращаем значение по умолчанию
     const ornamentPath = setting && setting.value ? setting.value : '/static/images/ornament.png';
     res.json({ path: ornamentPath });
@@ -135,34 +135,34 @@ app.get('/api/main-background', async (req, res) => {
       'Pragma': 'no-cache',
       'Expires': '0'
     });
-    
+
     const { Settings } = require('./models');
-    
+
     // Сначала проверяем наличие фонового изображения
     const backgroundImageSetting = await Settings.findOne({ where: { key: 'background_image' } });
-    
+
     if (backgroundImageSetting && backgroundImageSetting.value) {
       // Если есть фоновое изображение, возвращаем его
-      return res.json({ 
+      return res.json({
         type: 'image',
-        path: backgroundImageSetting.value 
+        path: backgroundImageSetting.value
       });
     }
-    
+
     // Если фонового изображения нет, возвращаем видео
     const videoSetting = await Settings.findOne({ where: { key: 'main_video' } });
     const videoPath = videoSetting && videoSetting.value ? videoSetting.value : '/static/images/mainback3.mp4';
-    
-    res.json({ 
+
+    res.json({
       type: 'video',
-      path: videoPath 
+      path: videoPath
     });
   } catch (error) {
     console.error('Ошибка при получении фона:', error);
     // Возвращаем видео по умолчанию, если БД недоступна
-    res.json({ 
+    res.json({
       type: 'video',
-      path: '/static/images/mainback3.mp4' 
+      path: '/static/images/mainback3.mp4'
     });
   }
 });
@@ -175,9 +175,9 @@ app.get('/api/countries', async (req, res) => {
       where: { isActive: true },
       order: [['order', 'ASC'], ['name', 'ASC']]
     });
-    
+
     console.log(`[API /api/countries] Найдено активных стран: ${countries.length}`);
-    
+
     // Если стран нет, возвращаем дефолтные
     if (countries.length === 0) {
       console.log('[API /api/countries] Нет активных стран, возвращаем дефолтные');
@@ -187,7 +187,7 @@ app.get('/api/countries', async (req, res) => {
         { id: 3, name: 'Казахстан', banner: '/static/images/kz.png', link: '/kz/', order: 2 }
       ]);
     }
-    
+
     console.log('[API /api/countries] Возвращаем страны:', countries.map(c => c.name).join(', '));
     res.json(countries);
   } catch (error) {
@@ -221,10 +221,10 @@ app.get('/api/tours/:slug', async (req, res) => {
   try {
     const { Tour, TourType, TourImage, Country } = require('./models');
     const identifier = req.params.slug;
-    
+
     // Пытаемся найти тур по slug или id
     let tour = null;
-    
+
     // Сначала пробуем найти по slug
     tour = await Tour.findOne({
       where: { slug: identifier, isActive: true },
@@ -234,7 +234,7 @@ app.get('/api/tours/:slug', async (req, res) => {
         { model: Country, as: 'countryData' }
       ]
     });
-    
+
     // Если не найден по slug, пробуем найти по id (если identifier - число)
     if (!tour && !isNaN(identifier)) {
       tour = await Tour.findOne({
@@ -246,11 +246,11 @@ app.get('/api/tours/:slug', async (req, res) => {
         ]
       });
     }
-    
+
     if (!tour) {
       return res.status(404).json({ error: 'Тур не найден' });
     }
-    
+
     res.json(tour);
   } catch (error) {
     console.error('Ошибка при получении тура:', error);
@@ -301,7 +301,7 @@ app.get('/api/stats', async (req, res) => {
     const toursSetting = await Settings.findOne({ where: { key: 'stats_tours' } });
     const touristsSetting = await Settings.findOne({ where: { key: 'stats_tourists' } });
     const experienceSetting = await Settings.findOne({ where: { key: 'stats_experience' } });
-    
+
     res.json({
       tours: toursSetting ? toursSetting.value : '140',
       tourists: touristsSetting ? touristsSetting.value : '16 500+',
@@ -336,7 +336,7 @@ app.post('/submit-application', upload.none(), async (req, res) => {
 
     // Сохраняем заявку в базу данных
     const { TourApplication, Tour } = require('./models');
-    
+
     let tourTitleValue = tourTitle;
     // Если передан tourId, получаем название тура из БД
     if (tourId && !tourTitle) {
@@ -345,7 +345,7 @@ app.post('/submit-application', upload.none(), async (req, res) => {
         tourTitleValue = tour.title;
       }
     }
-    
+
     const application = await TourApplication.create({
       name,
       phone,
@@ -463,7 +463,7 @@ app.get('*', (req, res) => {
 
   // Проверяем существование файлов
   const fs = require('fs');
-  
+
   if (fs.existsSync(indexPath)) {
     return res.sendFile(indexPath);
   } else if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
@@ -480,7 +480,7 @@ app.get('*', (req, res) => {
 sequelize.authenticate()
   .then(() => {
     console.log('Подключение к базе данных установлено успешно');
-    
+
     // Запуск сервера
     app.listen(PORT, () => {
       console.log(`Сервер запущен на http://localhost:${PORT}`);
@@ -489,7 +489,7 @@ sequelize.authenticate()
   .catch((error) => {
     console.error('Ошибка подключения к базе данных:', error.message);
     console.log('Сервер все равно запускается, но функционал БД будет недоступен');
-    
+
     // Запуск сервера даже при ошибке БД (для статического сайта)
     app.listen(PORT, () => {
       console.log(`Сервер запущен на http://localhost:${PORT}`);

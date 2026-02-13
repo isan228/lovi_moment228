@@ -215,10 +215,15 @@
             console.log('Текущая страна:', currentCountry);
             
             // Фильтруем туры по текущей стране и активности
-            const filteredTours = tours.filter(tour => 
-                tour.isActive && 
-                tour.country === currentCountry
-            );
+            const filteredTours = tours.filter(tour => {
+                if (!tour.isActive) return false;
+
+                // Пытаемся взять страну из связанной модели Country, затем из текстового поля
+                const tourCountryName = (tour.countryData && tour.countryData.name) || tour.country;
+                if (!tourCountryName) return false;
+
+                return tourCountryName.trim().toLowerCase() === currentCountry.trim().toLowerCase();
+            });
             
             console.log('Отфильтровано туров для', currentCountry + ':', filteredTours.length);
             
